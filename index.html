@@ -23,45 +23,77 @@ html,body{
 .app{width:100vw;height:100vh;padding:24px;overflow:auto}
 
 /* HEADER */
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px
+}
 .header h1{margin:0;font-size:30px}
-.badge{background:linear-gradient(135deg,#facc15,#f59e0b);padding:8px 16px;border-radius:999px;font-weight:700}
+.badge{
+    background:linear-gradient(135deg,#facc15,#f59e0b);
+    padding:8px 16px;
+    border-radius:999px;
+    font-weight:700
+}
 
 /* DASHBOARD */
 .dashboard{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-    gap:16px;margin-bottom:25px
+    gap:16px;
+    margin-bottom:25px
 }
 .card{
     background:var(--card);
-    padding:20px;border-radius:18px;
+    padding:20px;
+    border-radius:18px;
     box-shadow:0 12px 30px rgba(0,0,0,.08)
 }
 .card p{margin:0;color:var(--muted)}
 .card h2{margin-top:10px;font-size:30px}
-.red{color:var(--red)} .green{color:var(--green)} .blue{color:var(--blue)}
+.red{color:var(--red)}
+.green{color:var(--green)}
+.blue{color:var(--blue)}
 
 /* FORM */
-.box{background:var(--card);padding:20px;border-radius:18px;margin-bottom:20px;box-shadow:0 10px 25px rgba(0,0,0,.07)}
-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.box{
+    background:var(--card);
+    padding:20px;
+    border-radius:18px;
+    margin-bottom:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.07)
+}
+form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px
+}
 input,select,button{
-    padding:13px;border-radius:12px;
-    border:1px solid #e5e7eb;font-size:15px
+    padding:13px;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+    font-size:15px
 }
 button{
     background:linear-gradient(135deg,var(--blue),#1d4ed8);
-    color:#fff;border:none;font-weight:700;cursor:pointer
+    color:#fff;
+    border:none;
+    font-weight:700;
+    cursor:pointer
 }
 
 /* FILTER */
 .filters{
     display:grid;
     grid-template-columns:1fr 180px 180px auto;
-    gap:12px;margin-bottom:15px
+    gap:12px;
+    margin-bottom:15px
 }
 .clear-btn{
-    background:#e5e7eb;color:#111;font-weight:600
+    background:#e5e7eb;
+    color:#111;
+    font-weight:600
 }
 
 /* TABLE */
@@ -74,9 +106,14 @@ button{
 table{width:100%;border-collapse:collapse}
 th{
     background:linear-gradient(135deg,#1e293b,#334155);
-    color:#fff;padding:15px;text-align:left
+    color:#fff;
+    padding:15px;
+    text-align:left
 }
-td{padding:15px;border-bottom:1px solid #e5e7eb}
+td{
+    padding:15px;
+    border-bottom:1px solid #e5e7eb
+}
 tbody tr:hover{background:#f1f5f9;cursor:pointer}
 tbody tr.active{background:#e0e7ff}
 .pending{color:var(--red);font-weight:700}
@@ -121,13 +158,11 @@ tbody tr.active{background:#e0e7ff}
     <input id="supplier" placeholder="Supplier Name" required>
     <input id="bill" type="number" placeholder="Bill Amount ₹" required>
     <input id="paid" type="number" placeholder="Paid Amount ₹" required>
-
     <select id="mode" required>
         <option value="">Payment Mode</option>
         <option value="Cash">Cash</option>
         <option value="UPI">UPI</option>
     </select>
-
     <input id="date" type="date" required>
     <button id="saveBtn">Add Entry</button>
 </form>
@@ -169,30 +204,42 @@ let selectedSupplier = null;
 /* SAVE */
 const save = () => localStorage.setItem("ledger", JSON.stringify(ledger));
 
-/* RENDER */
+/* RENDER (FIXED & CORRECT) */
 function render(){
     summary.innerHTML="";
-    let totalPending=0,totalPaid=0,totalBill=0;
+
+    let totalPending=0, totalPaid=0, totalBill=0;
     let suppliers=new Set();
 
-    const s=search.value.toLowerCase();
-    const f=fromDate.value;
-    const t=toDate.value;
+    const s = search.value.toLowerCase();
+    const f = fromDate.value;
+    const t = toDate.value;
 
-    ledger.forEach((e,i)=>{
-        if(s && !e.supplier.toLowerCase().includes(s)) return;
-        if(f && e.date<f) return;
-        if(t && e.date>t) return;
-        if(selectedSupplier && e.supplier!==selectedSupplier) return;
+    // FILTER FIRST
+    const filteredEntries = ledger.filter(e=>{
+        if(s && !e.supplier.toLowerCase().includes(s)) return false;
+        if(f && e.date < f) return false;
+        if(t && e.date > t) return false;
+        return true;
+    });
 
-        const pending=e.bill-e.paid;
+    // DASHBOARD CONTEXT
+    const dashboardEntries = selectedSupplier
+        ? filteredEntries.filter(e=>e.supplier===selectedSupplier)
+        : filteredEntries;
 
-        totalBill+=e.bill;
-        totalPaid+=e.paid;
-        totalPending+=pending;
+    // DASHBOARD TOTALS
+    dashboardEntries.forEach(e=>{
+        totalBill += e.bill;
+        totalPaid += e.paid;
+        totalPending += (e.bill - e.paid);
         suppliers.add(e.supplier);
+    });
 
-        summary.innerHTML+=`
+    // TABLE RENDER
+    filteredEntries.forEach((e,i)=>{
+        const pending = e.bill - e.paid;
+        summary.innerHTML += `
         <tr class="${selectedSupplier===e.supplier?'active':''}"
             onclick="selectSupplier('${e.supplier}')">
             <td>${e.supplier}</td>
@@ -225,7 +272,7 @@ function clearSelection(){
     render();
 }
 
-/* ADD / UPDATE ENTRY */
+/* ADD / UPDATE */
 form.onsubmit=e=>{
     e.preventDefault();
     const data={
@@ -248,7 +295,7 @@ form.onsubmit=e=>{
     render();
 };
 
-/* EDIT ENTRY */
+/* EDIT */
 function editEntry(i){
     const e=ledger[i];
     supplier.value=e.supplier;
@@ -261,10 +308,10 @@ function editEntry(i){
     window.scrollTo({top:0,behavior:"smooth"});
 }
 
-/* FILTER EVENTS */
-search.oninput=render;
-fromDate.onchange=render;
-toDate.onchange=render;
+/* FILTER EVENTS (RESET CONTEXT) */
+search.oninput=()=>{selectedSupplier=null;render();}
+fromDate.onchange=()=>{selectedSupplier=null;render();}
+toDate.onchange=()=>{selectedSupplier=null;render();}
 
 render();
 </script>
