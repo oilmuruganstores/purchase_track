@@ -42,15 +42,6 @@ html, body {
     border-radius: 16px;
     width: 320px;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-}
-
-.pin-box h2 {
-    margin: 0;
-}
-
-.pin-box p {
-    color: #64748b;
 }
 
 .pin-box input {
@@ -94,15 +85,8 @@ body {
     padding-bottom: 15px;
 }
 
-.header h1 {
-    margin: 0;
-    font-size: 28px;
-}
-
-.subtitle {
-    color: var(--muted);
-    font-size: 14px;
-}
+.header h1 { margin: 0; font-size: 28px; }
+.subtitle { color: var(--muted); }
 
 .badge {
     display: inline-block;
@@ -128,22 +112,11 @@ body {
     padding: 18px;
     border-radius: 16px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
 }
 
-.card p {
-    margin: 0;
-    color: var(--muted);
-}
-
-.card h2 {
-    margin-top: 8px;
-    font-size: 26px;
-}
-
-.card.success h2 {
-    color: var(--success);
-}
+.card p { margin: 0; color: var(--muted); }
+.card h2 { margin-top: 8px; font-size: 26px; }
+.card.success h2 { color: var(--success); }
 
 /* ===== FORMS ===== */
 form {
@@ -241,7 +214,6 @@ tbody tr:hover {
     <input id="supplier" placeholder="Supplier Name" required>
     <input id="bill" type="number" placeholder="Bill Amount ₹" required>
     <input id="paid" type="number" placeholder="Paid Amount ₹" required>
-    <input id="date" type="date" required>
     <button>Add Bill</button>
 </form>
 
@@ -284,20 +256,25 @@ function checkPin(){
     }
 }
 
-/* ===== LEDGER LOGIC ===== */
+/* ===== AUTO DATE ===== */
+function todayDate(){
+    return new Date().toISOString().split("T")[0];
+}
+
+/* ===== LEDGER ===== */
 let ledger = JSON.parse(localStorage.getItem("ledger")) || [];
 let activeSupplier = "";
 
 function save(){ localStorage.setItem("ledger", JSON.stringify(ledger)); }
 
 function render(){
-    summary.innerHTML = "";
+    summary.innerHTML="";
     let map={}, total=0, pc=0, cc=0;
 
     ledger.forEach(e=>{
         if(!map[e.supplier]) map[e.supplier]={bill:0, paid:0};
-        map[e.supplier].bill += e.bill;
-        map[e.supplier].paid += e.paid;
+        map[e.supplier].bill+=e.bill;
+        map[e.supplier].paid+=e.paid;
     });
 
     Object.keys(map).filter(s=>s.toLowerCase().includes(search.value.toLowerCase()))
@@ -313,57 +290,57 @@ function render(){
         </tr>`;
     });
 
-    totalPending.textContent = "₹"+total;
-    supplierCount.textContent = Object.keys(map).length;
-    pendingCount.textContent = pc;
-    clearCount.textContent = cc;
+    totalPending.textContent="₹"+total;
+    supplierCount.textContent=Object.keys(map).length;
+    pendingCount.textContent=pc;
+    clearCount.textContent=cc;
     save();
 }
 
 function openDetail(name){
-    activeSupplier = name;
+    activeSupplier=name;
     detail.classList.remove("hidden");
-    detailName.textContent = "Ledger: " + name;
-    detailTable.innerHTML = "";
+    detailName.textContent="Ledger: "+name;
+    detailTable.innerHTML="";
     ledger.filter(e=>e.supplier===name).forEach(e=>{
         detailTable.innerHTML+=`
         <tr>
             <td>${e.date}</td>
             <td>${e.bill}</td>
             <td>${e.paid}</td>
-            <td>${e.bill - e.paid}</td>
+            <td>${e.bill-e.paid}</td>
         </tr>`;
     });
 }
 
-form.onsubmit = e => {
+form.onsubmit=e=>{
     e.preventDefault();
     ledger.push({
-        supplier: supplier.value.trim(),
-        bill: +bill.value,
-        paid: +paid.value,
-        date: date.value
+        supplier:supplier.value.trim(),
+        bill:+bill.value,
+        paid:+paid.value,
+        date: todayDate()
     });
     form.reset();
     render();
 };
 
-paymentForm.onsubmit = e => {
+paymentForm.onsubmit=e=>{
     e.preventDefault();
-    let amt = +payAmount.value;
+    let amt=+payAmount.value;
     ledger.filter(e=>e.supplier===activeSupplier).some(e=>{
-        let pend = e.bill - e.paid;
-        let pay = Math.min(pend, amt);
-        e.paid += pay;
-        amt -= pay;
-        return amt <= 0;
+        let pend=e.bill-e.paid;
+        let pay=Math.min(pend,amt);
+        e.paid+=pay;
+        amt-=pay;
+        return amt<=0;
     });
     payAmount.value="";
     render();
     openDetail(activeSupplier);
 };
 
-search.oninput = render;
+search.oninput=render;
 render();
 </script>
 
