@@ -5,7 +5,6 @@
 <title>Oil Murugan Stores | Supplier Ledger</title>
 
 <style>
-/* ===== FULL SCREEN ===== */
 html, body {
     width: 100%;
     height: 100%;
@@ -14,7 +13,6 @@ html, body {
     font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* ===== COLORS ===== */
 :root {
     --primary:#0f172a;
     --accent:#f59e0b;
@@ -25,7 +23,7 @@ html, body {
     --success:#16a34a;
 }
 
-/* ===== PIN LOCK ===== */
+/* PIN */
 .pin-screen {
     position: fixed;
     inset: 0;
@@ -35,7 +33,6 @@ html, body {
     justify-content: center;
     z-index: 9999;
 }
-
 .pin-box {
     background: #fff;
     padding: 30px;
@@ -43,7 +40,6 @@ html, body {
     width: 320px;
     text-align: center;
 }
-
 .pin-box input {
     width: 100%;
     padding: 12px;
@@ -52,7 +48,6 @@ html, body {
     letter-spacing: 6px;
     margin: 15px 0;
 }
-
 .pin-box button {
     width: 100%;
     padding: 12px;
@@ -61,16 +56,11 @@ html, body {
     border: none;
     border-radius: 10px;
     font-weight: 600;
-    cursor: pointer;
 }
-
 .hidden { display: none; }
 
-/* ===== APP ===== */
-body {
-    background: linear-gradient(135deg, #f8fafc, #eef2ff);
-}
-
+/* APP */
+body { background: linear-gradient(135deg, #f8fafc, #eef2ff); }
 .container {
     width: 100vw;
     height: 100vh;
@@ -79,18 +69,16 @@ body {
     overflow-y: auto;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header {
     border-bottom: 2px solid #e5e7eb;
     padding-bottom: 15px;
 }
-
 .header h1 { margin: 0; font-size: 28px; }
 .subtitle { color: var(--muted); }
-
 .badge {
-    display: inline-block;
     margin-top: 8px;
+    display: inline-block;
     background: linear-gradient(135deg, #f59e0b, #facc15);
     padding: 6px 14px;
     border-radius: 20px;
@@ -99,77 +87,66 @@ body {
     color: #78350f;
 }
 
-/* ===== DASHBOARD ===== */
+/* DASHBOARD */
 .dashboard {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
     margin: 25px 0;
 }
-
 .card {
     background: linear-gradient(135deg, #ffffff, #f8fafc);
     padding: 18px;
     border-radius: 16px;
     border: 1px solid #e5e7eb;
 }
-
 .card p { margin: 0; color: var(--muted); }
 .card h2 { margin-top: 8px; font-size: 26px; }
 .card.success h2 { color: var(--success); }
+.card.danger h2 { color: var(--danger); }
 
-/* ===== FORMS ===== */
+/* FORM */
 form {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 12px;
     margin-bottom: 15px;
 }
-
 input, button {
     padding: 12px;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
     font-size: 14px;
 }
-
 button {
     background: linear-gradient(135deg, var(--primary), #1e293b);
     color: #fff;
     border: none;
     font-weight: 600;
-    cursor: pointer;
 }
 
-/* ===== TABLE ===== */
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     border-radius: 14px;
     overflow: hidden;
 }
-
 th {
     background: linear-gradient(135deg, #0f172a, #1e293b);
     color: #fff;
     padding: 14px;
-    text-align: left;
 }
-
 td {
     padding: 14px;
     border-bottom: 1px solid #e5e7eb;
 }
-
-tbody tr:hover {
-    background: #f1f5f9;
-    cursor: pointer;
-}
+tbody tr:hover { background: #f1f5f9; cursor: pointer; }
 
 .pending { color: var(--danger); font-weight: 700; }
 .clear { color: var(--success); font-weight: 700; }
 
-/* ===== DETAIL ===== */
+/* DETAIL */
 #detail {
     margin-top: 25px;
     padding: 20px;
@@ -182,12 +159,12 @@ tbody tr:hover {
 
 <body>
 
-<!-- PIN LOCK -->
+<!-- PIN -->
 <div id="pinLock" class="pin-screen">
     <div class="pin-box">
         <h2>Oil Murugan Stores</h2>
         <p>Enter App PIN</p>
-        <input id="pinInput" type="password" maxlength="4" placeholder="****">
+        <input id="pinInput" type="password" maxlength="4">
         <button onclick="checkPin()">Unlock</button>
         <p id="pinMsg" style="color:red"></p>
     </div>
@@ -203,11 +180,24 @@ tbody tr:hover {
     <div class="badge">Wholesale Merchant Since 1995</div>
 </div>
 
+<!-- DASHBOARD -->
 <div class="dashboard">
-    <div class="card"><p>Total Pending</p><h2 id="totalPending">₹0</h2></div>
-    <div class="card"><p>Total Suppliers</p><h2 id="supplierCount">0</h2></div>
-    <div class="card"><p>Pending Suppliers</p><h2 id="pendingCount">0</h2></div>
-    <div class="card success"><p>Cleared Suppliers</p><h2 id="clearCount">0</h2></div>
+    <div class="card danger">
+        <p>Total Balance (Filtered)</p>
+        <h2 id="totalPending">₹0</h2>
+    </div>
+    <div class="card success">
+        <p>Total Paid (Filtered)</p>
+        <h2 id="totalPaid">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Total Bill (Filtered)</p>
+        <h2 id="totalBill">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Suppliers Shown</p>
+        <h2 id="supplierCount">0</h2>
+    </div>
 </div>
 
 <form id="form">
@@ -217,11 +207,17 @@ tbody tr:hover {
     <button>Add Bill</button>
 </form>
 
-<input id="search" placeholder="Search Supplier">
+<!-- FILTER -->
+<input id="search" placeholder="🔍 Search Supplier Name">
 
 <table>
 <thead>
-<tr><th>Supplier</th><th>Total Bill</th><th>Total Paid</th><th>Total Pending</th></tr>
+<tr>
+    <th>Supplier</th>
+    <th>Total Bill</th>
+    <th>Total Paid</th>
+    <th>Total Pending</th>
+</tr>
 </thead>
 <tbody id="summary"></tbody>
 </table>
@@ -244,56 +240,62 @@ tbody tr:hover {
 </div>
 
 <script>
-/* ===== FIXED PIN ===== */
-const FIXED_PIN = "0300";
+/* PIN */
+const FIXED_PIN="0300";
 function checkPin(){
-    if(pinInput.value === FIXED_PIN){
+    if(pinInput.value===FIXED_PIN){
         pinLock.classList.add("hidden");
         app.classList.remove("hidden");
     } else {
-        pinMsg.textContent = "Wrong PIN";
-        pinInput.value = "";
+        pinMsg.textContent="Wrong PIN";
+        pinInput.value="";
     }
 }
 
-/* ===== AUTO DATE ===== */
-function todayDate(){
-    return new Date().toISOString().split("T")[0];
-}
+/* DATE */
+const todayDate=()=>new Date().toISOString().split("T")[0];
 
-/* ===== LEDGER ===== */
-let ledger = JSON.parse(localStorage.getItem("ledger")) || [];
-let activeSupplier = "";
+/* LEDGER */
+let ledger=JSON.parse(localStorage.getItem("ledger"))||[];
+let activeSupplier="";
 
-function save(){ localStorage.setItem("ledger", JSON.stringify(ledger)); }
+function save(){localStorage.setItem("ledger",JSON.stringify(ledger));}
 
 function render(){
     summary.innerHTML="";
-    let map={}, total=0, pc=0, cc=0;
+    let map={}, totalPending=0, totalPaid=0, totalBill=0, shownSuppliers=0;
+    const filter=search.value.toLowerCase();
 
     ledger.forEach(e=>{
-        if(!map[e.supplier]) map[e.supplier]={bill:0, paid:0};
+        if(!map[e.supplier]) map[e.supplier]={bill:0,paid:0};
         map[e.supplier].bill+=e.bill;
         map[e.supplier].paid+=e.paid;
     });
 
-    Object.keys(map).filter(s=>s.toLowerCase().includes(search.value.toLowerCase()))
-    .forEach(s=>{
-        let b=map[s].bill, p=map[s].paid, pend=b-p;
-        total+=pend; pend>0?pc++:cc++;
+    Object.keys(map).filter(s=>s.toLowerCase().includes(filter)).forEach(s=>{
+        const bill=map[s].bill;
+        const paid=map[s].paid;
+        const pending=bill-paid;
+
+        totalBill+=bill;
+        totalPaid+=paid;
+        totalPending+=pending;
+        shownSuppliers++;
+
         summary.innerHTML+=`
         <tr onclick="openDetail('${s}')">
             <td><b>${s}</b></td>
-            <td>${b}</td>
-            <td>${p}</td>
-            <td class="${pend>0?'pending':'clear'}">${pend}</td>
+            <td>${bill}</td>
+            <td>${paid}</td>
+            <td class="${pending>0?'pending':'clear'}">${pending}</td>
         </tr>`;
     });
 
-    totalPending.textContent="₹"+total;
-    supplierCount.textContent=Object.keys(map).length;
-    pendingCount.textContent=pc;
-    clearCount.textContent=cc;
+    totalPending.textContent="₹"+totalPending;
+    totalPaid.textContent="₹"+totalPaid;
+    totalBill.textContent="₹"+totalBill;
+    supplierCount.textContent=shownSuppliers;
+
     save();
 }
 
@@ -319,7 +321,7 @@ form.onsubmit=e=>{
         supplier:supplier.value.trim(),
         bill:+bill.value,
         paid:+paid.value,
-        date: todayDate()
+        date:todayDate()
     });
     form.reset();
     render();
