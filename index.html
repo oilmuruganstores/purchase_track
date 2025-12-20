@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Oil Murugan Stores | Purchase Tracker</title>
+<title>Oil Murugan Stores | Purchase Dashboard</title>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -26,7 +29,7 @@ body{
     display:flex;justify-content:space-between;align-items:center;
     color:#fff;margin-bottom:20px
 }
-.header h1{margin:0;font-size:30px}
+.header h1{margin:0}
 
 /* TABS */
 .tabs{display:flex;gap:12px;margin-bottom:20px}
@@ -54,11 +57,6 @@ body{
 .card p{margin:0;color:var(--muted)}
 .card h2{margin-top:10px;font-size:28px}
 
-/* COLORS */
-.good{color:var(--green)}
-.warn{color:var(--orange)}
-.bad{color:var(--red)}
-
 /* FORM */
 .form-grid{
     display:grid;
@@ -85,6 +83,12 @@ td{padding:14px;border-bottom:1px solid #e5e7eb}
 tr:hover{background:#f1f5f9}
 .edit{color:#2563eb;font-weight:600;cursor:pointer}
 
+/* CONDITIONAL FORMATTING */
+.cf-green{background:#dcfce7;color:#166534;font-weight:700;border-radius:10px}
+.cf-light-green{background:#ecfdf5;color:#065f46;font-weight:600;border-radius:10px}
+.cf-orange{background:#ffedd5;color:#9a3412;font-weight:700;border-radius:10px}
+.cf-red{background:#fee2e2;color:#991b1b;font-weight:800;border-radius:10px}
+
 /* FILTER */
 .filters{
     display:grid;
@@ -92,50 +96,66 @@ tr:hover{background:#f1f5f9}
     gap:12px;margin-bottom:15px
 }
 .reset{background:#e5e7eb;color:#111}
+
+/* CHART */
+.chart-box{
+    background:#fff;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,.15)
+}
 </style>
 </head>
 
 <body>
 <div class="app">
 
+<!-- HEADER -->
 <div class="header">
     <h1>Oil Murugan Stores</h1>
-    <div>Premium Purchase Tracker</div>
+    <div>📊 Purchase Analytics</div>
 </div>
 
+<!-- TABS -->
 <div class="tabs">
     <div class="tab active" onclick="openTab('today')">Today</div>
     <div class="tab" onclick="openTab('history')">History</div>
-    <div class="tab" onclick="openTab('suppliers')">Suppliers</div>
-    <div class="tab" onclick="openTab('summary')">Summary</div>
+    <div class="tab" onclick="openTab('charts')">Charts</div>
 </div>
 
 <!-- TODAY -->
 <div id="today" class="panel active">
+
 <div class="dashboard">
     <div class="card"><p>Purchase</p><h2 id="dBill">₹0</h2></div>
-    <div class="card"><p>Paid</p><h2 id="dPaid" class="good">₹0</h2></div>
-    <div class="card"><p>Cash</p><h2 id="dCash" class="good">₹0</h2></div>
-    <div class="card"><p>UPI</p><h2 id="dUpi" class="good">₹0</h2></div>
-    <div class="card"><p>Pending</p><h2 id="dPending" class="bad">₹0</h2></div>
+    <div class="card"><p>Paid</p><h2 id="dPaid">₹0</h2></div>
+    <div class="card"><p>Cash</p><h2 id="dCash">₹0</h2></div>
+    <div class="card"><p>UPI</p><h2 id="dUpi">₹0</h2></div>
+    <div class="card"><p>Pending</p><h2 id="dPending">₹0</h2></div>
 </div>
 
 <div class="form-grid">
-    <input id="supplier" placeholder="Supplier Name">
-    <input id="bill" type="number" placeholder="Bill Amount">
-    <input id="cash" type="number" placeholder="Cash Paid" value="0">
-    <input id="upi" type="number" placeholder="UPI Paid" value="0">
+    <input list="supplierList" id="supplier" placeholder="Agency / Supplier">
+    <datalist id="supplierList"></datalist>
+
+    <input id="bill" type="number" placeholder="Bill Amount ₹">
+    <input id="cash" type="number" placeholder="Cash Paid ₹" value="0">
+    <input id="upi" type="number" placeholder="UPI Paid ₹" value="0">
     <button onclick="saveEntry()">Save</button>
 </div>
 
 <div class="table-box">
 <table>
 <thead>
-<tr><th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Paid</th><th>Pending</th><th>Edit</th></tr>
+<tr>
+<th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Paid</th><th>Pending</th><th>Edit</th>
+</tr>
 </thead>
 <tbody id="todayRows"></tbody>
 </table>
 </div>
+
 </div>
 
 <!-- HISTORY -->
@@ -146,85 +166,101 @@ tr:hover{background:#f1f5f9}
     <input id="toDate" type="date">
     <button class="reset" onclick="resetFilters()">Reset</button>
 </div>
+
 <div class="table-box">
 <table>
 <thead>
-<tr><th>Date</th><th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Paid</th><th>Pending</th></tr>
+<tr>
+<th>Date</th><th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Paid</th><th>Pending</th>
+</tr>
 </thead>
 <tbody id="historyRows"></tbody>
 </table>
 </div>
 </div>
 
-<!-- SUPPLIERS -->
-<div id="suppliers" class="panel">
-<div class="table-box">
-<table>
-<thead>
-<tr><th>Supplier</th><th>Purchase</th><th>Paid</th><th>Cash</th><th>UPI</th><th>Pending</th></tr>
-</thead>
-<tbody id="supplierRows"></tbody>
-</table>
-</div>
+<!-- CHARTS -->
+<div id="charts" class="panel">
+
+<div class="chart-box">
+    <h3>📅 Daily Purchase (Last 7 Days)</h3>
+    <canvas id="dailyChart"></canvas>
 </div>
 
-<!-- SUMMARY -->
-<div id="summary" class="panel">
-<div class="dashboard">
-    <div class="card"><p>Total Purchase</p><h2 id="sBill">₹0</h2></div>
-    <div class="card"><p>Total Paid</p><h2 id="sPaid" class="good">₹0</h2></div>
-    <div class="card"><p>Total Pending</p><h2 id="sPending" class="bad">₹0</h2></div>
+<div class="chart-box">
+    <h3>📊 Cash vs UPI</h3>
+    <canvas id="modeChart"></canvas>
 </div>
+
 </div>
 
 </div>
 
 <script>
-const today=new Date().toISOString().split("T")[0];
-let data=JSON.parse(localStorage.getItem("purchase_app"))||[];
-let editIndex=null;
+const today = new Date().toISOString().split("T")[0];
+let data = JSON.parse(localStorage.getItem("purchase_app")) || [];
+let suppliers = JSON.parse(localStorage.getItem("supplier_list")) || [];
+let editIndex = null;
 
-/* TAB */
-function openTab(id){
- document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
- document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- event.target.classList.add("active");
+function save(){
+ localStorage.setItem("purchase_app",JSON.stringify(data));
+ localStorage.setItem("supplier_list",JSON.stringify(suppliers));
 }
 
-/* SAVE */
-function save(){localStorage.setItem("purchase_app",JSON.stringify(data));}
+function pendingClass(v){
+ if(v===0) return "cf-green";
+ if(v<=5000) return "cf-light-green";
+ if(v<=20000) return "cf-orange";
+ return "cf-red";
+}
 
-/* SAVE ENTRY */
 function saveEntry(){
- let e={supplier:supplier.value,bill:+bill.value,cash:+cash.value,upi:+upi.value,date:today};
- if(e.cash+e.upi>e.bill)return alert("Paid exceeds bill");
- if(editIndex!==null){data[editIndex]=e;editIndex=null;}else data.push(e);
- supplier.value=bill.value="";cash.value=upi.value=0;
+ let name=supplier.value.trim();
+ let entry={supplier:name,bill:+bill.value,cash:+cash.value,upi:+upi.value,date:today};
+ if(!name||!entry.bill) return alert("Enter supplier & bill");
+ if(entry.cash+entry.upi>entry.bill) return alert("Paid exceeds bill");
+
+ if(!suppliers.includes(name)) suppliers.push(name);
+ if(editIndex!==null){data[editIndex]=entry;editIndex=null;}
+ else data.push(entry);
+
+ supplier.value=bill.value="";
+ cash.value=upi.value=0;
  save();render();
 }
 
-/* RENDER */
 function render(){
- let tb=0,tp=0,tc=0,tu=0;
  todayRows.innerHTML="";
+ let tb=0,tp=0,tc=0,tu=0;
+
  data.filter(e=>e.date===today).forEach((e,i)=>{
   let paid=e.cash+e.upi;
   tb+=e.bill;tp+=paid;tc+=e.cash;tu+=e.upi;
+
   todayRows.innerHTML+=`
   <tr>
-   <td>${e.supplier}</td><td>${e.bill}</td><td>${e.cash}</td><td>${e.upi}</td>
-   <td>${paid}</td><td class="${e.bill-paid>0?'bad':'good'}">${e.bill-paid}</td>
+   <td>${e.supplier}</td>
+   <td>₹${e.bill}</td>
+   <td>₹${e.cash}</td>
+   <td>₹${e.upi}</td>
+   <td>₹${paid}</td>
+   <td class="${pendingClass(e.bill-paid)}">₹${e.bill-paid}</td>
    <td class="edit" onclick="edit(${i})">Edit</td>
   </tr>`;
  });
- dBill.textContent="₹"+tb;dPaid.textContent="₹"+tp;dCash.textContent="₹"+tc;dUpi.textContent="₹"+tu;
+
+ dBill.textContent="₹"+tb;
+ dPaid.textContent="₹"+tp;
+ dCash.textContent="₹"+tc;
+ dUpi.textContent="₹"+tu;
  dPending.textContent="₹"+(tb-tp);
 
- renderHistory();renderSuppliers();renderSummary();
+ renderHistory();
+ renderCharts();
+ updateSupplierList();
+ save();
 }
 
-/* HISTORY */
 function renderHistory(){
  historyRows.innerHTML="";
  data.filter(e=>{
@@ -236,58 +272,66 @@ function renderHistory(){
   let paid=e.cash+e.upi;
   historyRows.innerHTML+=`
   <tr>
-   <td>${e.date}</td><td>${e.supplier}</td><td>${e.bill}</td>
-   <td>${e.cash}</td><td>${e.upi}</td><td>${paid}</td><td>${e.bill-paid}</td>
+   <td>${e.date}</td>
+   <td>${e.supplier}</td>
+   <td>₹${e.bill}</td>
+   <td>₹${e.cash}</td>
+   <td>₹${e.upi}</td>
+   <td>₹${paid}</td>
+   <td class="${pendingClass(e.bill-paid)}">₹${e.bill-paid}</td>
   </tr>`;
  });
 }
 
-/* SUPPLIERS */
-function renderSuppliers(){
- let map={};
- supplierRows.innerHTML="";
- data.forEach(e=>{
-  if(!map[e.supplier])map[e.supplier]={bill:0,paid:0,cash:0,upi:0};
-  map[e.supplier].bill+=e.bill;
-  map[e.supplier].cash+=e.cash;
-  map[e.supplier].upi+=e.upi;
-  map[e.supplier].paid+=e.cash+e.upi;
+let dailyChart,modeChart;
+
+function renderCharts(){
+ const days=[...Array(7)].map((_,i)=>{
+  let d=new Date();d.setDate(d.getDate()-i);
+  return d.toISOString().split("T")[0];
+ }).reverse();
+
+ let dailyTotals=days.map(d=>data.filter(e=>e.date===d).reduce((s,e)=>s+e.bill,0));
+ let cashTotal=data.reduce((s,e)=>s+e.cash,0);
+ let upiTotal=data.reduce((s,e)=>s+e.upi,0);
+
+ if(dailyChart) dailyChart.destroy();
+ dailyChart=new Chart(document.getElementById("dailyChart"),{
+  type:"bar",
+  data:{labels:days,datasets:[{label:"₹ Purchase",data:dailyTotals,backgroundColor:"#3b82f6"}]}
  });
- Object.keys(map).forEach(s=>{
-  let m=map[s];
-  supplierRows.innerHTML+=`
-  <tr>
-   <td>${s}</td><td>${m.bill}</td><td>${m.paid}</td>
-   <td>${m.cash}</td><td>${m.upi}</td><td>${m.bill-m.paid}</td>
-  </tr>`;
+
+ if(modeChart) modeChart.destroy();
+ modeChart=new Chart(document.getElementById("modeChart"),{
+  type:"doughnut",
+  data:{labels:["Cash","UPI"],datasets:[{data:[cashTotal,upiTotal],backgroundColor:["#22c55e","#3b82f6"]}]}
  });
 }
 
-/* SUMMARY */
-function renderSummary(){
- let b=0,p=0;
- data.forEach(e=>{b+=e.bill;p+=e.cash+e.upi});
- sBill.textContent="₹"+b;
- sPaid.textContent="₹"+p;
- sPending.textContent="₹"+(b-p);
-}
-
-/* EDIT */
 function edit(i){
  let e=data[i];
- supplier.value=e.supplier;bill.value=e.bill;
- cash.value=e.cash;upi.value=e.upi;
- editIndex=i;openTab('today');
+ supplier.value=e.supplier;
+ bill.value=e.bill;
+ cash.value=e.cash;
+ upi.value=e.upi;
+ editIndex=i;
 }
 
-/* FILTER EVENTS */
-fSupplier.oninput=renderHistory;
-fromDate.onchange=renderHistory;
-toDate.onchange=renderHistory;
+function updateSupplierList(){
+ supplierList.innerHTML="";
+ suppliers.forEach(s=>supplierList.innerHTML+=`<option value="${s}">`);
+}
 
 function resetFilters(){
  fSupplier.value=fromDate.value=toDate.value="";
  renderHistory();
+}
+
+function openTab(id){
+ document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ event.target.classList.add("active");
 }
 
 render();
