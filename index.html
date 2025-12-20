@@ -6,326 +6,288 @@
 
 <style>
 *{box-sizing:border-box}
-html,body{
+body{
     margin:0;
-    font-family:"Segoe UI",system-ui,sans-serif;
-    background:linear-gradient(135deg,#eef2ff,#f8fafc);
-    color:#0f172a;
+    font-family:"Inter","Segoe UI",system-ui,sans-serif;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
 }
 :root{
-    --blue:#2563eb;
-    --green:#16a34a;
-    --red:#dc2626;
+    --blue:#3b82f6;
+    --green:#22c55e;
+    --red:#ef4444;
     --orange:#f59e0b;
     --card:#ffffff;
     --muted:#64748b;
 }
-
-/* LAYOUT */
-.app{
-    max-width:1400px;
-    margin:auto;
-    padding:24px;
-}
+.app{max-width:1500px;margin:auto;padding:20px}
 
 /* HEADER */
 .header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;
+    color:#fff;margin-bottom:20px
 }
-.header h1{
-    margin:0;
-    font-size:30px;
+.header h1{margin:0;font-size:30px}
+
+/* TABS */
+.tabs{display:flex;gap:12px;margin-bottom:20px}
+.tab{
+    padding:12px 20px;border-radius:999px;
+    background:#334155;color:#fff;cursor:pointer;font-weight:600
 }
-.badge{
-    background:linear-gradient(135deg,#facc15,#f59e0b);
-    padding:8px 16px;
-    border-radius:999px;
-    font-weight:700;
-}
+.tab.active{background:linear-gradient(135deg,#38bdf8,#2563eb)}
+
+/* PANELS */
+.panel{display:none;background:#f8fafc;border-radius:20px;padding:20px}
+.panel.active{display:block}
 
 /* DASHBOARD */
 .dashboard{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:16px;
-    margin-bottom:25px;
+    gap:16px;margin-bottom:20px
 }
 .card{
     background:var(--card);
-    padding:20px;
-    border-radius:18px;
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    border-radius:20px;padding:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,.2)
 }
-.card p{
-    margin:0;
-    color:var(--muted);
-    font-size:14px;
-}
-.card h2{
-    margin-top:10px;
-    font-size:28px;
-}
-.blue{color:var(--blue)}
-.green{color:var(--green)}
-.red{color:var(--red)}
-.orange{color:var(--orange)}
+.card p{margin:0;color:var(--muted)}
+.card h2{margin-top:10px;font-size:28px}
 
-/* FILTERS */
-.filters{
-    background:var(--card);
-    padding:18px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,.07);
-    display:grid;
-    grid-template-columns:1fr 180px 180px auto;
-    gap:12px;
-    margin-bottom:20px;
-}
-input,button,select{
-    padding:12px;
-    border-radius:12px;
-    border:1px solid #e5e7eb;
-    font-size:14px;
-}
-button{
-    background:linear-gradient(135deg,var(--blue),#1d4ed8);
-    color:#fff;
-    border:none;
-    font-weight:700;
-    cursor:pointer;
-}
-.reset-btn{
-    background:#e5e7eb;
-    color:#111;
-}
+/* COLORS */
+.good{color:var(--green)}
+.warn{color:var(--orange)}
+.bad{color:var(--red)}
 
-/* ENTRY FORM */
-.form-box{
-    background:var(--card);
-    padding:20px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,.07);
-    margin-bottom:20px;
-}
+/* FORM */
 .form-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:12px;
+    gap:12px;margin-bottom:20px
+}
+input,button{
+    padding:14px;border-radius:12px;
+    border:1px solid #e5e7eb;font-size:14px
+}
+button{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:#fff;border:none;font-weight:700;cursor:pointer
 }
 
 /* TABLE */
-.table-box{
-    background:var(--card);
-    border-radius:18px;
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
-    overflow:hidden;
-}
-table{
-    width:100%;
-    border-collapse:collapse;
-}
+.table-box{background:#fff;border-radius:20px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
 th{
     background:linear-gradient(135deg,#1e293b,#334155);
-    color:#fff;
-    padding:15px;
-    text-align:left;
+    color:#fff;padding:14px;text-align:left
 }
-td{
-    padding:15px;
-    border-bottom:1px solid #e5e7eb;
+td{padding:14px;border-bottom:1px solid #e5e7eb}
+tr:hover{background:#f1f5f9}
+.edit{color:#2563eb;font-weight:600;cursor:pointer}
+
+/* FILTER */
+.filters{
+    display:grid;
+    grid-template-columns:1fr 180px 180px auto;
+    gap:12px;margin-bottom:15px
 }
-tbody tr:hover{
-    background:#f1f5f9;
-}
-.edit{
-    color:var(--blue);
-    cursor:pointer;
-    font-weight:600;
-}
+.reset{background:#e5e7eb;color:#111}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-<!-- HEADER -->
 <div class="header">
     <h1>Oil Murugan Stores</h1>
-    <div class="badge">Purchase Tracker</div>
+    <div>Premium Purchase Tracker</div>
 </div>
 
-<!-- DASHBOARD -->
+<div class="tabs">
+    <div class="tab active" onclick="openTab('today')">Today</div>
+    <div class="tab" onclick="openTab('history')">History</div>
+    <div class="tab" onclick="openTab('suppliers')">Suppliers</div>
+    <div class="tab" onclick="openTab('summary')">Summary</div>
+</div>
+
+<!-- TODAY -->
+<div id="today" class="panel active">
 <div class="dashboard">
-    <div class="card">
-        <p>Total Purchase</p>
-        <h2 id="dBill" class="blue">₹0</h2>
-    </div>
-    <div class="card">
-        <p>Total Paid</p>
-        <h2 id="dPaid" class="green">₹0</h2>
-    </div>
-    <div class="card">
-        <p>Paid by Cash</p>
-        <h2 id="dCash" class="green">₹0</h2>
-    </div>
-    <div class="card">
-        <p>Paid by UPI</p>
-        <h2 id="dUpi" class="green">₹0</h2>
-    </div>
-    <div class="card">
-        <p>Total Pending</p>
-        <h2 id="dPending" class="red">₹0</h2>
-    </div>
+    <div class="card"><p>Purchase</p><h2 id="dBill">₹0</h2></div>
+    <div class="card"><p>Paid</p><h2 id="dPaid" class="good">₹0</h2></div>
+    <div class="card"><p>Cash</p><h2 id="dCash" class="good">₹0</h2></div>
+    <div class="card"><p>UPI</p><h2 id="dUpi" class="good">₹0</h2></div>
+    <div class="card"><p>Pending</p><h2 id="dPending" class="bad">₹0</h2></div>
 </div>
 
-<!-- FILTERS -->
-<div class="filters">
-    <input id="supplierFilter" placeholder="🔍 Supplier name">
-    <input id="fromDate" type="date">
-    <input id="toDate" type="date">
-    <button class="reset-btn" onclick="resetFilters()">Reset</button>
+<div class="form-grid">
+    <input id="supplier" placeholder="Supplier Name">
+    <input id="bill" type="number" placeholder="Bill Amount">
+    <input id="cash" type="number" placeholder="Cash Paid" value="0">
+    <input id="upi" type="number" placeholder="UPI Paid" value="0">
+    <button onclick="saveEntry()">Save</button>
 </div>
 
-<!-- ENTRY FORM -->
-<div class="form-box">
-<form id="form" class="form-grid">
-    <input id="supplier" placeholder="Supplier Name" required>
-    <input id="bill" type="number" placeholder="Bill Amount ₹" required>
-    <input id="cash" type="number" placeholder="Cash Paid ₹" value="0">
-    <input id="upi" type="number" placeholder="UPI Paid ₹" value="0">
-    <input id="date" type="date" required>
-    <button id="saveBtn">Add Purchase</button>
-</form>
-</div>
-
-<!-- TABLE -->
 <div class="table-box">
 <table>
 <thead>
-<tr>
-    <th>Supplier</th>
-    <th>Date</th>
-    <th>Bill</th>
-    <th>Cash</th>
-    <th>UPI</th>
-    <th>Paid</th>
-    <th>Pending</th>
-    <th>Edit</th>
-</tr>
+<tr><th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Paid</th><th>Pending</th><th>Edit</th></tr>
 </thead>
-<tbody id="rows"></tbody>
+<tbody id="todayRows"></tbody>
 </table>
+</div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="panel">
+<div class="filters">
+    <input id="fSupplier" placeholder="Supplier">
+    <input id="fromDate" type="date">
+    <input id="toDate" type="date">
+    <button class="reset" onclick="resetFilters()">Reset</button>
+</div>
+<div class="table-box">
+<table>
+<thead>
+<tr><th>Date</th><th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Paid</th><th>Pending</th></tr>
+</thead>
+<tbody id="historyRows"></tbody>
+</table>
+</div>
+</div>
+
+<!-- SUPPLIERS -->
+<div id="suppliers" class="panel">
+<div class="table-box">
+<table>
+<thead>
+<tr><th>Supplier</th><th>Purchase</th><th>Paid</th><th>Cash</th><th>UPI</th><th>Pending</th></tr>
+</thead>
+<tbody id="supplierRows"></tbody>
+</table>
+</div>
+</div>
+
+<!-- SUMMARY -->
+<div id="summary" class="panel">
+<div class="dashboard">
+    <div class="card"><p>Total Purchase</p><h2 id="sBill">₹0</h2></div>
+    <div class="card"><p>Total Paid</p><h2 id="sPaid" class="good">₹0</h2></div>
+    <div class="card"><p>Total Pending</p><h2 id="sPending" class="bad">₹0</h2></div>
+</div>
 </div>
 
 </div>
 
 <script>
-let data = JSON.parse(localStorage.getItem("purchase_data")) || [];
-let editIndex = null;
+const today=new Date().toISOString().split("T")[0];
+let data=JSON.parse(localStorage.getItem("purchase_app"))||[];
+let editIndex=null;
+
+/* TAB */
+function openTab(id){
+ document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ event.target.classList.add("active");
+}
 
 /* SAVE */
-function save(){
-    localStorage.setItem("purchase_data",JSON.stringify(data));
+function save(){localStorage.setItem("purchase_app",JSON.stringify(data));}
+
+/* SAVE ENTRY */
+function saveEntry(){
+ let e={supplier:supplier.value,bill:+bill.value,cash:+cash.value,upi:+upi.value,date:today};
+ if(e.cash+e.upi>e.bill)return alert("Paid exceeds bill");
+ if(editIndex!==null){data[editIndex]=e;editIndex=null;}else data.push(e);
+ supplier.value=bill.value="";cash.value=upi.value=0;
+ save();render();
 }
 
-/* FILTER + RENDER */
+/* RENDER */
 function render(){
-    rows.innerHTML="";
-    let totalBill=0,totalPaid=0,totalCash=0,totalUpi=0;
+ let tb=0,tp=0,tc=0,tu=0;
+ todayRows.innerHTML="";
+ data.filter(e=>e.date===today).forEach((e,i)=>{
+  let paid=e.cash+e.upi;
+  tb+=e.bill;tp+=paid;tc+=e.cash;tu+=e.upi;
+  todayRows.innerHTML+=`
+  <tr>
+   <td>${e.supplier}</td><td>${e.bill}</td><td>${e.cash}</td><td>${e.upi}</td>
+   <td>${paid}</td><td class="${e.bill-paid>0?'bad':'good'}">${e.bill-paid}</td>
+   <td class="edit" onclick="edit(${i})">Edit</td>
+  </tr>`;
+ });
+ dBill.textContent="₹"+tb;dPaid.textContent="₹"+tp;dCash.textContent="₹"+tc;dUpi.textContent="₹"+tu;
+ dPending.textContent="₹"+(tb-tp);
 
-    const sf = supplierFilter.value.toLowerCase();
-    const fd = fromDate.value;
-    const td = toDate.value;
-
-    data.filter(e=>{
-        if(sf && !e.supplier.toLowerCase().includes(sf)) return false;
-        if(fd && e.date < fd) return false;
-        if(td && e.date > td) return false;
-        return true;
-    }).forEach((e,i)=>{
-        const paid = e.cash + e.upi;
-        totalBill += e.bill;
-        totalCash += e.cash;
-        totalUpi += e.upi;
-        totalPaid += paid;
-
-        rows.innerHTML += `
-        <tr>
-            <td>${e.supplier}</td>
-            <td>${e.date}</td>
-            <td>${e.bill}</td>
-            <td>${e.cash}</td>
-            <td>${e.upi}</td>
-            <td>${paid}</td>
-            <td>${e.bill - paid}</td>
-            <td class="edit" onclick="edit(${i})">Edit</td>
-        </tr>`;
-    });
-
-    dBill.textContent = "₹"+totalBill;
-    dCash.textContent = "₹"+totalCash;
-    dUpi.textContent = "₹"+totalUpi;
-    dPaid.textContent = "₹"+totalPaid;
-    dPending.textContent = "₹"+(totalBill-totalPaid);
-
-    save();
+ renderHistory();renderSuppliers();renderSummary();
 }
 
-/* ADD / UPDATE */
-form.onsubmit = e=>{
-    e.preventDefault();
-    let entry={
-        supplier:supplier.value.trim(),
-        bill:+bill.value,
-        cash:+cash.value,
-        upi:+upi.value,
-        date:date.value
-    };
+/* HISTORY */
+function renderHistory(){
+ historyRows.innerHTML="";
+ data.filter(e=>{
+  if(fSupplier.value&&!e.supplier.toLowerCase().includes(fSupplier.value.toLowerCase()))return false;
+  if(fromDate.value&&e.date<fromDate.value)return false;
+  if(toDate.value&&e.date>toDate.value)return false;
+  return true;
+ }).forEach(e=>{
+  let paid=e.cash+e.upi;
+  historyRows.innerHTML+=`
+  <tr>
+   <td>${e.date}</td><td>${e.supplier}</td><td>${e.bill}</td>
+   <td>${e.cash}</td><td>${e.upi}</td><td>${paid}</td><td>${e.bill-paid}</td>
+  </tr>`;
+ });
+}
 
-    if(entry.cash + entry.upi > entry.bill){
-        alert("Paid amount cannot exceed bill amount");
-        return;
-    }
+/* SUPPLIERS */
+function renderSuppliers(){
+ let map={};
+ supplierRows.innerHTML="";
+ data.forEach(e=>{
+  if(!map[e.supplier])map[e.supplier]={bill:0,paid:0,cash:0,upi:0};
+  map[e.supplier].bill+=e.bill;
+  map[e.supplier].cash+=e.cash;
+  map[e.supplier].upi+=e.upi;
+  map[e.supplier].paid+=e.cash+e.upi;
+ });
+ Object.keys(map).forEach(s=>{
+  let m=map[s];
+  supplierRows.innerHTML+=`
+  <tr>
+   <td>${s}</td><td>${m.bill}</td><td>${m.paid}</td>
+   <td>${m.cash}</td><td>${m.upi}</td><td>${m.bill-m.paid}</td>
+  </tr>`;
+ });
+}
 
-    if(editIndex!==null){
-        data[editIndex]=entry;
-        editIndex=null;
-        saveBtn.textContent="Add Purchase";
-    }else{
-        data.push(entry);
-    }
-
-    form.reset();
-    cash.value=upi.value=0;
-    render();
-};
+/* SUMMARY */
+function renderSummary(){
+ let b=0,p=0;
+ data.forEach(e=>{b+=e.bill;p+=e.cash+e.upi});
+ sBill.textContent="₹"+b;
+ sPaid.textContent="₹"+p;
+ sPending.textContent="₹"+(b-p);
+}
 
 /* EDIT */
 function edit(i){
-    let e=data[i];
-    supplier.value=e.supplier;
-    bill.value=e.bill;
-    cash.value=e.cash;
-    upi.value=e.upi;
-    date.value=e.date;
-    editIndex=i;
-    saveBtn.textContent="Update Entry";
-    window.scrollTo({top:0,behavior:"smooth"});
+ let e=data[i];
+ supplier.value=e.supplier;bill.value=e.bill;
+ cash.value=e.cash;upi.value=e.upi;
+ editIndex=i;openTab('today');
 }
 
 /* FILTER EVENTS */
-supplierFilter.oninput=render;
-fromDate.onchange=render;
-toDate.onchange=render;
+fSupplier.oninput=renderHistory;
+fromDate.onchange=renderHistory;
+toDate.onchange=renderHistory;
 
 function resetFilters(){
-    supplierFilter.value="";
-    fromDate.value="";
-    toDate.value="";
-    render();
+ fSupplier.value=fromDate.value=toDate.value="";
+ renderHistory();
 }
 
 render();
