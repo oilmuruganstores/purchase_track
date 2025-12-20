@@ -44,8 +44,8 @@ html,body{
 
 /* FORM */
 .box{background:var(--card);padding:20px;border-radius:18px;margin-bottom:20px;box-shadow:0 10px 25px rgba(0,0,0,.07)}
-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-input,button{
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+input,select,button{
     padding:13px;border-radius:12px;
     border:1px solid #e5e7eb;font-size:15px
 }
@@ -57,14 +57,11 @@ button{
 /* FILTER */
 .filters{
     display:grid;
-    grid-template-columns:1fr 180px 180px auto auto;
+    grid-template-columns:1fr 180px 180px auto;
     gap:12px;margin-bottom:15px
 }
 .clear-btn{
     background:#e5e7eb;color:#111;font-weight:600
-}
-.export-btn{
-    background:linear-gradient(135deg,#16a34a,#15803d)
 }
 
 /* TABLE */
@@ -85,6 +82,7 @@ tbody tr.active{background:#e0e7ff}
 .pending{color:var(--red);font-weight:700}
 .clear{color:var(--green);font-weight:700}
 .edit{color:var(--blue);cursor:pointer;font-weight:600}
+.mode{font-weight:600}
 </style>
 </head>
 
@@ -99,18 +97,37 @@ tbody tr.active{background:#e0e7ff}
 
 <!-- DASHBOARD -->
 <div class="dashboard">
-    <div class="card"><p>Total Pending</p><h2 id="totalPending" class="red">₹0</h2></div>
-    <div class="card"><p>Total Paid</p><h2 id="totalPaid" class="green">₹0</h2></div>
-    <div class="card"><p>Total Bill</p><h2 id="totalBill" class="blue">₹0</h2></div>
-    <div class="card"><p>Suppliers Count</p><h2 id="supplierCount">0</h2></div>
+    <div class="card">
+        <p>Total Pending</p>
+        <h2 id="totalPending" class="red">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Total Paid</p>
+        <h2 id="totalPaid" class="green">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Total Bill</p>
+        <h2 id="totalBill" class="blue">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Suppliers Count</p>
+        <h2 id="supplierCount">0</h2>
+    </div>
 </div>
 
-<!-- ADD ENTRY -->
+<!-- ADD / EDIT ENTRY -->
 <div class="box">
 <form id="form">
     <input id="supplier" placeholder="Supplier Name" required>
     <input id="bill" type="number" placeholder="Bill Amount ₹" required>
     <input id="paid" type="number" placeholder="Paid Amount ₹" required>
+
+    <select id="mode" required>
+        <option value="">Payment Mode</option>
+        <option value="Cash">Cash</option>
+        <option value="UPI">UPI</option>
+    </select>
+
     <input id="date" type="date" required>
     <button id="saveBtn">Add Entry</button>
 </form>
@@ -122,7 +139,6 @@ tbody tr.active{background:#e0e7ff}
     <input id="fromDate" type="date">
     <input id="toDate" type="date">
     <button class="clear-btn" onclick="clearSelection()">Show All</button>
-    <button class="export-btn" onclick="exportExcel()">Export Excel</button>
 </div>
 
 <!-- TABLE -->
@@ -134,6 +150,7 @@ tbody tr.active{background:#e0e7ff}
     <th>Bill</th>
     <th>Paid</th>
     <th>Pending</th>
+    <th>Mode</th>
     <th>Date</th>
     <th>Edit</th>
 </tr>
@@ -155,7 +172,7 @@ const save = () => localStorage.setItem("ledger", JSON.stringify(ledger));
 /* RENDER */
 function render(){
     summary.innerHTML="";
-    let totalP=0,totalPaid=0,totalBill=0;
+    let totalPending=0,totalPaid=0,totalBill=0;
     let suppliers=new Set();
 
     const s=search.value.toLowerCase();
@@ -169,9 +186,10 @@ function render(){
         if(selectedSupplier && e.supplier!==selectedSupplier) return;
 
         const pending=e.bill-e.paid;
+
         totalBill+=e.bill;
         totalPaid+=e.paid;
-        totalP+=pending;
+        totalPending+=pending;
         suppliers.add(e.supplier);
 
         summary.innerHTML+=`
@@ -181,12 +199,13 @@ function render(){
             <td>${e.bill}</td>
             <td>${e.paid}</td>
             <td class="${pending>0?'pending':'clear'}">${pending}</td>
+            <td class="mode">${e.mode}</td>
             <td>${e.date}</td>
             <td class="edit" onclick="event.stopPropagation(); editEntry(${i})">Edit</td>
         </tr>`;
     });
 
-    totalPending.textContent="₹"+totalP;
+    totalPending.textContent="₹"+totalPending;
     totalPaid.textContent="₹"+totalPaid;
     totalBill.textContent="₹"+totalBill;
     supplierCount.textContent=suppliers.size;
@@ -206,51 +225,43 @@ function clearSelection(){
     render();
 }
 
-/* ADD / UPDATE */
+/* ADD / UPDATE ENTRY */
 form.onsubmit=e=>{
     e.preventDefault();
     const data={
         supplier:supplier.value.trim(),
         bill:+bill.value,
         paid:+paid.value,
+        mode:mode.value,
         date:date.value
     };
+
     if(editIndex!==null){
         ledger[editIndex]=data;
         editIndex=null;
         saveBtn.textContent="Add Entry";
-    } else ledger.push(data);
+    } else {
+        ledger.push(data);
+    }
+
     form.reset();
     render();
 };
 
-/* EDIT */
+/* EDIT ENTRY */
 function editEntry(i){
     const e=ledger[i];
     supplier.value=e.supplier;
     bill.value=e.bill;
     paid.value=e.paid;
+    mode.value=e.mode;
     date.value=e.date;
     editIndex=i;
     saveBtn.textContent="Update Entry";
     window.scrollTo({top:0,behavior:"smooth"});
 }
 
-/* EXPORT */
-function exportExcel(){
-    let rows=[["Supplier","Bill","Paid","Pending","Date"]];
-    summary.querySelectorAll("tr").forEach(r=>{
-        let c=r.children;
-        rows.push([c[0].innerText,c[1].innerText,c[2].innerText,c[3].innerText,c[4].innerText]);
-    });
-    let csv=rows.map(r=>r.join(",")).join("\n");
-    let blob=new Blob([csv],{type:"text/csv"});
-    let a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="supplier_ledger.csv";
-    a.click();
-}
-
+/* FILTER EVENTS */
 search.oninput=render;
 fromDate.onchange=render;
 toDate.onchange=render;
