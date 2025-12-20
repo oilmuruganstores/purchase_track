@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Oil Murugan Stores | Purchase Dashboard</title>
 
-<!-- Chart.js CDN -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -29,7 +29,6 @@ body{
     display:flex;justify-content:space-between;align-items:center;
     color:#fff;margin-bottom:20px
 }
-.header h1{margin:0}
 
 /* TABS */
 .tabs{display:flex;gap:12px;margin-bottom:20px}
@@ -114,7 +113,7 @@ tr:hover{background:#f1f5f9}
 <!-- HEADER -->
 <div class="header">
     <h1>Oil Murugan Stores</h1>
-    <div>📊 Purchase Analytics</div>
+    <div>Purchase Analytics</div>
 </div>
 
 <!-- TABS -->
@@ -128,20 +127,20 @@ tr:hover{background:#f1f5f9}
 <div id="today" class="panel active">
 
 <div class="dashboard">
-    <div class="card"><p>Purchase</p><h2 id="dBill">₹0</h2></div>
-    <div class="card"><p>Paid</p><h2 id="dPaid">₹0</h2></div>
-    <div class="card"><p>Cash</p><h2 id="dCash">₹0</h2></div>
-    <div class="card"><p>UPI</p><h2 id="dUpi">₹0</h2></div>
-    <div class="card"><p>Pending</p><h2 id="dPending">₹0</h2></div>
+    <div class="card"><p>Purchase</p><h2 id="dBill">Rs. 0</h2></div>
+    <div class="card"><p>Paid</p><h2 id="dPaid">Rs. 0</h2></div>
+    <div class="card"><p>Cash</p><h2 id="dCash">Rs. 0</h2></div>
+    <div class="card"><p>UPI</p><h2 id="dUpi">Rs. 0</h2></div>
+    <div class="card"><p>Pending</p><h2 id="dPending">Rs. 0</h2></div>
 </div>
 
 <div class="form-grid">
     <input list="supplierList" id="supplier" placeholder="Agency / Supplier">
     <datalist id="supplierList"></datalist>
 
-    <input id="bill" type="number" placeholder="Bill Amount ₹">
-    <input id="cash" type="number" placeholder="Cash Paid ₹" value="0">
-    <input id="upi" type="number" placeholder="UPI Paid ₹" value="0">
+    <input id="bill" type="number" placeholder="Bill Amount (Rs.)">
+    <input id="cash" type="number" placeholder="Cash Paid (Rs.)" value="0">
+    <input id="upi" type="number" placeholder="UPI Paid (Rs.)" value="0">
     <button onclick="saveEntry()">Save</button>
 </div>
 
@@ -183,12 +182,12 @@ tr:hover{background:#f1f5f9}
 <div id="charts" class="panel">
 
 <div class="chart-box">
-    <h3>📅 Daily Purchase (Last 7 Days)</h3>
+    <h3>Daily Purchase (Last 7 Days)</h3>
     <canvas id="dailyChart"></canvas>
 </div>
 
 <div class="chart-box">
-    <h3>📊 Cash vs UPI</h3>
+    <h3>Cash vs UPI</h3>
     <canvas id="modeChart"></canvas>
 </div>
 
@@ -240,20 +239,20 @@ function render(){
   todayRows.innerHTML+=`
   <tr>
    <td>${e.supplier}</td>
-   <td>₹${e.bill}</td>
-   <td>₹${e.cash}</td>
-   <td>₹${e.upi}</td>
-   <td>₹${paid}</td>
-   <td class="${pendingClass(e.bill-paid)}">₹${e.bill-paid}</td>
+   <td>Rs. ${e.bill}</td>
+   <td>Rs. ${e.cash}</td>
+   <td>Rs. ${e.upi}</td>
+   <td>Rs. ${paid}</td>
+   <td class="${pendingClass(e.bill-paid)}">Rs. ${e.bill-paid}</td>
    <td class="edit" onclick="edit(${i})">Edit</td>
   </tr>`;
  });
 
- dBill.textContent="₹"+tb;
- dPaid.textContent="₹"+tp;
- dCash.textContent="₹"+tc;
- dUpi.textContent="₹"+tu;
- dPending.textContent="₹"+(tb-tp);
+ dBill.textContent="Rs. "+tb;
+ dPaid.textContent="Rs. "+tp;
+ dCash.textContent="Rs. "+tc;
+ dUpi.textContent="Rs. "+tu;
+ dPending.textContent="Rs. "+(tb-tp);
 
  renderHistory();
  renderCharts();
@@ -274,11 +273,11 @@ function renderHistory(){
   <tr>
    <td>${e.date}</td>
    <td>${e.supplier}</td>
-   <td>₹${e.bill}</td>
-   <td>₹${e.cash}</td>
-   <td>₹${e.upi}</td>
-   <td>₹${paid}</td>
-   <td class="${pendingClass(e.bill-paid)}">₹${e.bill-paid}</td>
+   <td>Rs. ${e.bill}</td>
+   <td>Rs. ${e.cash}</td>
+   <td>Rs. ${e.upi}</td>
+   <td>Rs. ${paid}</td>
+   <td class="${pendingClass(e.bill-paid)}">Rs. ${e.bill-paid}</td>
   </tr>`;
  });
 }
@@ -298,13 +297,15 @@ function renderCharts(){
  if(dailyChart) dailyChart.destroy();
  dailyChart=new Chart(document.getElementById("dailyChart"),{
   type:"bar",
-  data:{labels:days,datasets:[{label:"₹ Purchase",data:dailyTotals,backgroundColor:"#3b82f6"}]}
+  data:{labels:days,datasets:[{label:"Rs. Purchase",data:dailyTotals,backgroundColor:"#3b82f6"}]},
+  options:{plugins:{tooltip:{callbacks:{label:c=>"Rs. "+c.parsed.y}}}}
  });
 
  if(modeChart) modeChart.destroy();
  modeChart=new Chart(document.getElementById("modeChart"),{
   type:"doughnut",
-  data:{labels:["Cash","UPI"],datasets:[{data:[cashTotal,upiTotal],backgroundColor:["#22c55e","#3b82f6"]}]}
+  data:{labels:["Cash","UPI"],datasets:[{data:[cashTotal,upiTotal],backgroundColor:["#22c55e","#3b82f6"]}]},
+  options:{plugins:{tooltip:{callbacks:{label:c=>c.label+": Rs. "+c.parsed}}}}
  });
 }
 
