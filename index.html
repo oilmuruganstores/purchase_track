@@ -9,208 +9,298 @@ html, body {
     width: 100%;
     height: 100%;
     margin: 0;
-    overflow: hidden;
     font-family: "Segoe UI", system-ui, sans-serif;
+    background: linear-gradient(135deg,#f8fafc,#eef2ff);
 }
+
 :root {
     --primary:#0f172a;
+    --accent:#f59e0b;
+    --card:#ffffff;
     --muted:#64748b;
     --danger:#dc2626;
     --success:#16a34a;
 }
-body { background: linear-gradient(135deg,#f8fafc,#eef2ff); }
-.hidden{display:none}
 
-/* PIN */
-.pin-screen{
-    position:fixed;inset:0;
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    display:flex;align-items:center;justify-content:center;z-index:9999;
-}
-.pin-box{background:#fff;padding:30px;border-radius:16px;width:320px;text-align:center}
-.pin-box input{width:100%;padding:12px;font-size:20px;text-align:center;letter-spacing:6px;margin:15px 0}
-.pin-box button{width:100%;padding:12px;background:#0f172a;color:#fff;border:none;border-radius:10px}
-
-/* APP */
-.container{
-    width:100vw;height:100vh;padding:24px;box-sizing:border-box;overflow-y:auto
-}
-.header{border-bottom:2px solid #e5e7eb;padding-bottom:15px}
-.header h1{margin:0}
-.subtitle{color:var(--muted)}
-.badge{
-    margin-top:8px;display:inline-block;
-    background:linear-gradient(135deg,#f59e0b,#facc15);
-    padding:6px 14px;border-radius:20px;font-weight:700;font-size:13px
+/* ===== APP ===== */
+.container {
+    width: 100vw;
+    height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 
-/* DASHBOARD */
-.dashboard{
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:16px;margin:25px 0
+/* ===== HEADER ===== */
+.header {
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 15px;
 }
-.card{background:#fff;padding:18px;border-radius:16px;border:1px solid #e5e7eb}
-.card p{margin:0;color:var(--muted)}
-.card h2{margin-top:8px;font-size:26px}
-.danger h2{color:var(--danger)}
-.success h2{color:var(--success)}
+.header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+.subtitle {
+    color: var(--muted);
+}
+.badge {
+    margin-top: 6px;
+    display: inline-block;
+    background: linear-gradient(135deg,#f59e0b,#facc15);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #78350f;
+}
 
-/* FORM */
-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:15px}
-input,button{padding:12px;border-radius:10px;border:1px solid #e5e7eb}
-button{background:#0f172a;color:#fff;border:none;font-weight:600}
+/* ===== DASHBOARD ===== */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 16px;
+    margin: 25px 0;
+}
+.card {
+    background: linear-gradient(135deg,#fff,#f8fafc);
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+}
+.card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+.card h2 {
+    margin-top: 8px;
+    font-size: 26px;
+}
+.card.danger h2 { color: var(--danger); }
+.card.success h2 { color: var(--success); }
 
-/* TABLE */
-table{width:100%;border-collapse:collapse;border-radius:14px;overflow:hidden}
-th{background:#0f172a;color:#fff;padding:14px}
-td{padding:14px;border-bottom:1px solid #e5e7eb}
-.pending{color:var(--danger);font-weight:700}
-.clear{color:var(--success);font-weight:700}
-tbody tr:hover{background:#f1f5f9;cursor:pointer}
+/* ===== FORM ===== */
+form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(170px,1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+}
+input, button {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+button {
+    background: linear-gradient(135deg,var(--primary),#1e293b);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
 
-/* DETAIL */
-#detail{margin-top:25px;padding:20px;background:#fff7ed;border-radius:14px}
+/* ===== TABLE ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 14px;
+    overflow: hidden;
+}
+th {
+    background: linear-gradient(135deg,#0f172a,#1e293b);
+    color: #fff;
+    padding: 14px;
+}
+td {
+    padding: 14px;
+    border-bottom: 1px solid #e5e7eb;
+}
+tbody tr:hover {
+    background: #f1f5f9;
+    cursor: pointer;
+}
+
+.pending { color: var(--danger); font-weight: 700; }
+.clear { color: var(--success); font-weight: 700; }
+
+/* ===== DETAIL ===== */
+#detail {
+    margin-top: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg,#fff7ed,#fffbeb);
+    border-radius: 14px;
+    border: 1px solid #fde68a;
+}
 </style>
 </head>
 
 <body>
 
-<!-- PIN -->
-<div id="pinLock" class="pin-screen">
-  <div class="pin-box">
-    <h2>Oil Murugan Stores</h2>
-    <p>Enter App PIN</p>
-    <input id="pinInput" type="password" maxlength="4">
-    <button onclick="checkPin()">Unlock</button>
-    <p id="pinMsg" style="color:red"></p>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app" class="hidden">
 <div class="container">
 
 <div class="header">
-  <h1>Oil Murugan Stores</h1>
-  <p class="subtitle">Supplier Pending Ledger</p>
-  <div class="badge">Wholesale Merchant Since 1995</div>
+    <h1>Oil Murugan Stores</h1>
+    <p class="subtitle">Supplier Pending Ledger</p>
+    <div class="badge">Wholesale Merchant Since 1995</div>
 </div>
 
 <!-- DASHBOARD -->
 <div class="dashboard">
-  <div class="card danger"><p>Balance (Pending)</p><h2 id="dPending">₹0</h2></div>
-  <div class="card success"><p>Paid</p><h2 id="dPaid">₹0</h2></div>
-  <div class="card"><p>Total Bill</p><h2 id="dBill">₹0</h2></div>
-  <div class="card"><p>Suppliers</p><h2 id="dSuppliers">0</h2></div>
+    <div class="card danger">
+        <p>Total Balance (Pending)</p>
+        <h2 id="totalPending">₹0</h2>
+    </div>
+    <div class="card success">
+        <p>Total Paid</p>
+        <h2 id="totalPaid">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Total Bill Amount</p>
+        <h2 id="totalBill">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Suppliers Shown</p>
+        <h2 id="supplierCount">0</h2>
+    </div>
 </div>
 
+<!-- ENTRY FORM -->
 <form id="form">
-  <input id="supplier" placeholder="Supplier Name" required>
-  <input id="bill" type="number" placeholder="Bill Amount ₹" required>
-  <input id="paid" type="number" placeholder="Paid Amount ₹" required>
-  <button>Add Bill</button>
+    <input id="supplier" placeholder="Supplier Name" required>
+    <input id="bill" type="number" placeholder="Bill Amount ₹" required>
+    <input id="paid" type="number" placeholder="Paid Amount ₹" required>
+    <button>Add Bill</button>
 </form>
 
+<!-- FILTER -->
 <input id="search" placeholder="🔍 Search Supplier">
 
 <table>
 <thead>
-<tr><th>Supplier</th><th>Total Bill</th><th>Total Paid</th><th>Pending</th></tr>
+<tr>
+    <th>Supplier</th>
+    <th>Total Bill</th>
+    <th>Total Paid</th>
+    <th>Total Pending</th>
+</tr>
 </thead>
 <tbody id="summary"></tbody>
 </table>
 
-<div id="detail" class="hidden">
-  <h3 id="detailName"></h3>
-  <form id="paymentForm">
-    <input id="payAmount" type="number" placeholder="Pay Amount ₹" required>
-    <button>Add Payment</button>
-  </form>
-  <table>
-    <thead><tr><th>Date</th><th>Bill</th><th>Paid</th><th>Pending</th></tr></thead>
-    <tbody id="detailTable"></tbody>
-  </table>
+<div id="detail" style="display:none">
+    <h3 id="detailName"></h3>
+    <form id="paymentForm">
+        <input id="payAmount" type="number" placeholder="Pay Amount ₹" required>
+        <button>Add Payment</button>
+    </form>
+    <table>
+        <thead>
+            <tr><th>Date</th><th>Bill</th><th>Paid</th><th>Pending</th></tr>
+        </thead>
+        <tbody id="detailTable"></tbody>
+    </table>
 </div>
 
-</div>
 </div>
 
 <script>
-/* PIN */
-const FIXED_PIN="0300";
-function checkPin(){
-  if(pinInput.value===FIXED_PIN){pinLock.classList.add("hidden");app.classList.remove("hidden")}
-  else{pinMsg.textContent="Wrong PIN";pinInput.value=""}
-}
-
 /* DATE */
-const today=()=>new Date().toISOString().split("T")[0];
+const todayDate = () => new Date().toISOString().split("T")[0];
 
 /* DATA */
-let ledger=JSON.parse(localStorage.getItem("ledger"))||[];
-let activeSupplier="";
+let ledger = JSON.parse(localStorage.getItem("ledger")) || [];
+let activeSupplier = "";
 
-function save(){localStorage.setItem("ledger",JSON.stringify(ledger))}
+/* SAVE */
+function save(){ localStorage.setItem("ledger", JSON.stringify(ledger)); }
 
-/* LIVE DASHBOARD */
-function calculate(preview=false){
-  let billT=0, paidT=0;
-  ledger.forEach(e=>{billT+=e.bill; paidT+=e.paid});
-
-  if(preview){
-    billT+=+bill.value||0;
-    paidT+=+paid.value||0;
-  }
-
-  dBill.textContent="₹"+billT;
-  dPaid.textContent="₹"+paidT;
-  dPending.textContent="₹"+(billT-paidT);
-  dSuppliers.textContent=[...new Set(ledger.map(e=>e.supplier))].length;
-}
-
-/* RENDER TABLE */
+/* RENDER (KHATABOOK STYLE) */
 function render(){
-  summary.innerHTML="";
-  const map={};
-  ledger.forEach(e=>{
-    if(!map[e.supplier]) map[e.supplier]={bill:0,paid:0};
-    map[e.supplier].bill+=e.bill;
-    map[e.supplier].paid+=e.paid;
-  });
+    summary.innerHTML="";
+    let map={}, totalPending=0, totalPaid=0, totalBill=0, count=0;
+    const filter = search.value.toLowerCase();
 
-  Object.keys(map).filter(s=>s.toLowerCase().includes(search.value.toLowerCase()))
-  .forEach(s=>{
-    const b=map[s].bill,p=map[s].paid,pend=b-p;
-    summary.innerHTML+=`
-    <tr onclick="openDetail('${s}')">
-      <td><b>${s}</b></td><td>${b}</td><td>${p}</td>
-      <td class="${pend>0?'pending':'clear'}">${pend}</td>
-    </tr>`;
-  });
+    ledger.forEach(e=>{
+        if(!map[e.supplier]) map[e.supplier]={bill:0,paid:0};
+        map[e.supplier].bill+=e.bill;
+        map[e.supplier].paid+=e.paid;
+    });
 
-  calculate(false);
-  save();
+    Object.keys(map).filter(s=>s.toLowerCase().includes(filter)).forEach(s=>{
+        const bill=map[s].bill;
+        const paid=map[s].paid;
+        const pending=bill-paid;
+
+        totalBill+=bill;
+        totalPaid+=paid;
+        totalPending+=pending;
+        count++;
+
+        summary.innerHTML+=`
+        <tr onclick="openDetail('${s}')">
+            <td><b>${s}</b></td>
+            <td>${bill}</td>
+            <td>${paid}</td>
+            <td class="${pending>0?'pending':'clear'}">${pending}</td>
+        </tr>`;
+    });
+
+    totalPending.textContent="₹"+totalPending;
+    totalPaid.textContent="₹"+totalPaid;
+    totalBill.textContent="₹"+totalBill;
+    supplierCount.textContent=count;
+
+    save();
 }
 
-/* DETAILS */
+/* DETAIL */
 function openDetail(name){
-  activeSupplier=name;
-  detail.classList.remove("hidden");
-  detailName.textContent="Ledger: "+name;
-  detailTable.innerHTML="";
-  ledger.filter(e=>e.supplier===name).forEach(e=>{
-    detailTable.innerHTML+=`
-    <tr><td>${e.date}</td><td>${e.bill}</td><td>${e.paid}</td><td>${e.bill-e.paid}</td></tr>`;
-  });
+    activeSupplier=name;
+    detail.style.display="block";
+    detailName.textContent="Ledger: "+name;
+    detailTable.innerHTML="";
+    ledger.filter(e=>e.supplier===name).forEach(e=>{
+        detailTable.innerHTML+=`
+        <tr>
+            <td>${e.date}</td>
+            <td>${e.bill}</td>
+            <td>${e.paid}</td>
+            <td>${e.bill-e.paid}</td>
+        </tr>`;
+    });
 }
 
-/* EVENTS */
-bill.oninput=paid.oninput=()=>calculate(true);
+/* ADD BILL */
 form.onsubmit=e=>{
-  e.preventDefault();
-  ledger.push({supplier:supplier.value.trim(),bill:+bill.value,paid:+paid.value,date:today()});
-  form.reset();render();
+    e.preventDefault();
+    ledger.push({
+        supplier:supplier.value.trim(),
+        bill:+bill.value,
+        paid:+paid.value,
+        date:todayDate()
+    });
+    form.reset();
+    render();
 };
+
+/* ADD PAYMENT */
+paymentForm.onsubmit=e=>{
+    e.preventDefault();
+    let amt=+payAmount.value;
+    ledger.filter(e=>e.supplier===activeSupplier).some(e=>{
+        let pend=e.bill-e.paid;
+        let pay=Math.min(pend,amt);
+        e.paid+=pay;
+        amt-=pay;
+        return amt<=0;
+    });
+    payAmount.value="";
+    render();
+    openDetail(activeSupplier);
+};
+
+/* FILTER */
 search.oninput=render;
 
 render();
