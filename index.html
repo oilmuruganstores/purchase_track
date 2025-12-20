@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Oil Murugan Stores | Purchase System</title>
+<title>Oil Murugan Stores | Purchase Register</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -38,7 +38,6 @@ body{
   margin:0;
   font-size:34px;
   color:#713f12;
-  letter-spacing:1px;
 }
 .header span{
   font-weight:700;
@@ -66,12 +65,8 @@ body{
 }
 
 /* PANELS */
-.panel{
-  display:none;
-}
-.panel.active{
-  display:block;
-}
+.panel{display:none}
+.panel.active{display:block}
 
 /* DATE BAR */
 .date-bar{
@@ -157,9 +152,7 @@ td{
   padding:16px;
   border-bottom:1px solid #fde68a;
 }
-tr:hover{
-  background:#fffbeb;
-}
+tr:hover{background:#fffbeb}
 
 /* CONDITIONAL */
 .good{background:#dcfce7;color:#166534;font-weight:900;border-radius:10px}
@@ -182,12 +175,8 @@ tr:hover{
   margin-bottom:22px;
   box-shadow:0 15px 35px rgba(0,0,0,.18);
 }
-.insight{
-  font-size:18px;
-  font-weight:800;
-}
-.up{color:#15803d}
-.down{color:#b91c1c}
+.up{color:#15803d;font-weight:900}
+.down{color:#b91c1c;font-weight:900}
 </style>
 </head>
 
@@ -238,10 +227,13 @@ tr:hover{
 <table>
 <thead>
 <tr>
-<th>Supplier</th>
-<th>Bill</th>
-<th>Paid</th>
-<th>Pending</th>
+  <th>Supplier</th>
+  <th>Bill</th>
+  <th>Cash</th>
+  <th>UPI</th>
+  <th>Net</th>
+  <th>Paid</th>
+  <th>Pending</th>
 </tr>
 </thead>
 <tbody id="todayRows"></tbody>
@@ -263,11 +255,14 @@ tr:hover{
 <table>
 <thead>
 <tr>
-<th>Date</th>
-<th>Supplier</th>
-<th>Bill</th>
-<th>Paid</th>
-<th>Pending</th>
+  <th>Date</th>
+  <th>Supplier</th>
+  <th>Bill</th>
+  <th>Cash</th>
+  <th>UPI</th>
+  <th>Net</th>
+  <th>Paid</th>
+  <th>Pending</th>
 </tr>
 </thead>
 <tbody id="historyRows"></tbody>
@@ -312,7 +307,7 @@ let selectedDate=today;
 let data=JSON.parse(localStorage.getItem("oil_murugan_data"))||[];
 let suppliers=JSON.parse(localStorage.getItem("oil_murugan_suppliers"))||[];
 
-function paid(e){
+function getPaid(e){
   return (e.cash||0)+(e.upi||0)+(e.net||0);
 }
 
@@ -336,7 +331,7 @@ function saveEntry(){
     date:selectedDate
   };
   if(!e.supplier||!e.bill)return alert("Enter supplier & bill");
-  if(paid(e)>e.bill)return alert("Paid exceeds bill");
+  if(getPaid(e)>e.bill)return alert("Paid exceeds bill");
 
   if(!suppliers.includes(e.supplier)){
     suppliers.push(e.supplier);
@@ -354,7 +349,7 @@ function render(){
   let tb=0,tp=0;
 
   data.filter(e=>e.date===selectedDate).forEach(e=>{
-    let p=paid(e);
+    let p=getPaid(e);
     tb+=e.bill;tp+=p;
     let pend=e.bill-p;
     let cls=pend===0?"good":pend<=5000?"warn":"bad";
@@ -362,6 +357,9 @@ function render(){
       <tr>
         <td>${e.supplier}</td>
         <td>Rs. ${e.bill}</td>
+        <td>Rs. ${e.cash||0}</td>
+        <td>Rs. ${e.upi||0}</td>
+        <td>Rs. ${e.net||0}</td>
         <td>Rs. ${p}</td>
         <td class="${cls}">Rs. ${pend}</td>
       </tr>`;
@@ -384,12 +382,15 @@ function renderHistory(){
     if(toDate.value && e.date>toDate.value)return false;
     return true;
   }).forEach(e=>{
-    let p=paid(e);
+    let p=getPaid(e);
     historyRows.innerHTML+=`
       <tr>
         <td>${e.date}</td>
         <td>${e.supplier}</td>
         <td>Rs. ${e.bill}</td>
+        <td>Rs. ${e.cash||0}</td>
+        <td>Rs. ${e.upi||0}</td>
+        <td>Rs. ${e.net||0}</td>
         <td>Rs. ${p}</td>
         <td>Rs. ${e.bill-p}</td>
       </tr>`;
@@ -415,7 +416,7 @@ function renderAnalytics(){
     let prev=values.at(-2);
     let diff=((last-prev)/prev*100).toFixed(1);
     trendText.textContent=(diff>=0?"▲ ":"▼ ")+Math.abs(diff)+"%";
-    trendText.className=""+(diff>=0?"up":"down");
+    trendText.className=diff>=0?"up":"down";
   }
 
   let last3=values.slice(-3);
