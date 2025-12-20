@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Oil Murugan Stores | Supplier Ledger</title>
+<title>Oil Murugan Stores | Purchase Tracker</title>
 
 <style>
 *{box-sizing:border-box}
 html,body{
-    margin:0;height:100%;
+    margin:0;
     font-family:"Segoe UI",system-ui,sans-serif;
     background:linear-gradient(135deg,#eef2ff,#f8fafc);
     color:#0f172a;
@@ -16,84 +16,104 @@ html,body{
     --blue:#2563eb;
     --green:#16a34a;
     --red:#dc2626;
-    --gold:#f59e0b;
+    --orange:#f59e0b;
     --card:#ffffff;
     --muted:#64748b;
 }
-.app{width:100vw;height:100vh;padding:24px;overflow:auto}
+
+/* LAYOUT */
+.app{
+    max-width:1400px;
+    margin:auto;
+    padding:24px;
+}
 
 /* HEADER */
 .header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:20px
+    margin-bottom:20px;
 }
-.header h1{margin:0;font-size:30px}
+.header h1{
+    margin:0;
+    font-size:30px;
+}
 .badge{
     background:linear-gradient(135deg,#facc15,#f59e0b);
     padding:8px 16px;
     border-radius:999px;
-    font-weight:700
+    font-weight:700;
 }
 
 /* DASHBOARD */
 .dashboard{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:16px;
-    margin-bottom:25px
+    margin-bottom:25px;
 }
 .card{
     background:var(--card);
     padding:20px;
     border-radius:18px;
-    box-shadow:0 12px 30px rgba(0,0,0,.08)
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
 }
-.card p{margin:0;color:var(--muted)}
-.card h2{margin-top:10px;font-size:30px}
-.red{color:var(--red)}
-.green{color:var(--green)}
+.card p{
+    margin:0;
+    color:var(--muted);
+    font-size:14px;
+}
+.card h2{
+    margin-top:10px;
+    font-size:28px;
+}
 .blue{color:var(--blue)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.orange{color:var(--orange)}
 
-/* FORM */
-.box{
+/* FILTERS */
+.filters{
     background:var(--card);
-    padding:20px;
+    padding:18px;
     border-radius:18px;
-    margin-bottom:20px;
-    box-shadow:0 10px 25px rgba(0,0,0,.07)
-}
-form{
+    box-shadow:0 10px 25px rgba(0,0,0,.07);
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:12px
+    grid-template-columns:1fr 180px 180px auto;
+    gap:12px;
+    margin-bottom:20px;
 }
-input,select,button{
-    padding:13px;
+input,button,select{
+    padding:12px;
     border-radius:12px;
     border:1px solid #e5e7eb;
-    font-size:15px
+    font-size:14px;
 }
 button{
     background:linear-gradient(135deg,var(--blue),#1d4ed8);
     color:#fff;
     border:none;
     font-weight:700;
-    cursor:pointer
+    cursor:pointer;
 }
-
-/* FILTER */
-.filters{
-    display:grid;
-    grid-template-columns:1fr 180px 180px auto;
-    gap:12px;
-    margin-bottom:15px
-}
-.clear-btn{
+.reset-btn{
     background:#e5e7eb;
     color:#111;
-    font-weight:600
+}
+
+/* ENTRY FORM */
+.form-box{
+    background:var(--card);
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,.07);
+    margin-bottom:20px;
+}
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;
 }
 
 /* TABLE */
@@ -101,25 +121,30 @@ button{
     background:var(--card);
     border-radius:18px;
     box-shadow:0 12px 30px rgba(0,0,0,.08);
-    overflow:hidden
+    overflow:hidden;
 }
-table{width:100%;border-collapse:collapse}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
 th{
     background:linear-gradient(135deg,#1e293b,#334155);
     color:#fff;
     padding:15px;
-    text-align:left
+    text-align:left;
 }
 td{
     padding:15px;
-    border-bottom:1px solid #e5e7eb
+    border-bottom:1px solid #e5e7eb;
 }
-tbody tr:hover{background:#f1f5f9;cursor:pointer}
-tbody tr.active{background:#e0e7ff}
-.pending{color:var(--red);font-weight:700}
-.clear{color:var(--green);font-weight:700}
-.edit{color:var(--blue);cursor:pointer;font-weight:600}
-.mode{font-weight:600}
+tbody tr:hover{
+    background:#f1f5f9;
+}
+.edit{
+    color:var(--blue);
+    cursor:pointer;
+    font-weight:600;
+}
 </style>
 </head>
 
@@ -129,51 +154,51 @@ tbody tr.active{background:#e0e7ff}
 <!-- HEADER -->
 <div class="header">
     <h1>Oil Murugan Stores</h1>
-    <div class="badge">Wholesale Merchant Since 1995</div>
+    <div class="badge">Purchase Tracker</div>
 </div>
 
 <!-- DASHBOARD -->
 <div class="dashboard">
     <div class="card">
-        <p>Total Pending</p>
-        <h2 id="totalPending" class="red">₹0</h2>
+        <p>Total Purchase</p>
+        <h2 id="dBill" class="blue">₹0</h2>
     </div>
     <div class="card">
         <p>Total Paid</p>
-        <h2 id="totalPaid" class="green">₹0</h2>
+        <h2 id="dPaid" class="green">₹0</h2>
     </div>
     <div class="card">
-        <p>Total Bill</p>
-        <h2 id="totalBill" class="blue">₹0</h2>
+        <p>Paid by Cash</p>
+        <h2 id="dCash" class="green">₹0</h2>
     </div>
     <div class="card">
-        <p>Suppliers Count</p>
-        <h2 id="supplierCount">0</h2>
+        <p>Paid by UPI</p>
+        <h2 id="dUpi" class="green">₹0</h2>
+    </div>
+    <div class="card">
+        <p>Total Pending</p>
+        <h2 id="dPending" class="red">₹0</h2>
     </div>
 </div>
 
-<!-- ADD / EDIT ENTRY -->
-<div class="box">
-<form id="form">
-    <input id="supplier" placeholder="Supplier Name" required>
-    <input id="bill" type="number" placeholder="Bill Amount ₹" required>
-    <input id="paid" type="number" placeholder="Paid Amount ₹" required>
-    <select id="mode" required>
-        <option value="">Payment Mode</option>
-        <option value="Cash">Cash</option>
-        <option value="UPI">UPI</option>
-    </select>
-    <input id="date" type="date" required>
-    <button id="saveBtn">Add Entry</button>
-</form>
-</div>
-
-<!-- FILTER -->
+<!-- FILTERS -->
 <div class="filters">
-    <input id="search" placeholder="🔍 Supplier name">
+    <input id="supplierFilter" placeholder="🔍 Supplier name">
     <input id="fromDate" type="date">
     <input id="toDate" type="date">
-    <button class="clear-btn" onclick="clearSelection()">Show All</button>
+    <button class="reset-btn" onclick="resetFilters()">Reset</button>
+</div>
+
+<!-- ENTRY FORM -->
+<div class="form-box">
+<form id="form" class="form-grid">
+    <input id="supplier" placeholder="Supplier Name" required>
+    <input id="bill" type="number" placeholder="Bill Amount ₹" required>
+    <input id="cash" type="number" placeholder="Cash Paid ₹" value="0">
+    <input id="upi" type="number" placeholder="UPI Paid ₹" value="0">
+    <input id="date" type="date" required>
+    <button id="saveBtn">Add Purchase</button>
+</form>
 </div>
 
 <!-- TABLE -->
@@ -182,136 +207,126 @@ tbody tr.active{background:#e0e7ff}
 <thead>
 <tr>
     <th>Supplier</th>
+    <th>Date</th>
     <th>Bill</th>
+    <th>Cash</th>
+    <th>UPI</th>
     <th>Paid</th>
     <th>Pending</th>
-    <th>Mode</th>
-    <th>Date</th>
     <th>Edit</th>
 </tr>
 </thead>
-<tbody id="summary"></tbody>
+<tbody id="rows"></tbody>
 </table>
 </div>
 
 </div>
 
 <script>
-let ledger = JSON.parse(localStorage.getItem("ledger")) || [];
+let data = JSON.parse(localStorage.getItem("purchase_data")) || [];
 let editIndex = null;
-let selectedSupplier = null;
 
 /* SAVE */
-const save = () => localStorage.setItem("ledger", JSON.stringify(ledger));
+function save(){
+    localStorage.setItem("purchase_data",JSON.stringify(data));
+}
 
-/* RENDER (FIXED & CORRECT) */
+/* FILTER + RENDER */
 function render(){
-    summary.innerHTML="";
+    rows.innerHTML="";
+    let totalBill=0,totalPaid=0,totalCash=0,totalUpi=0;
 
-    let totalPending=0, totalPaid=0, totalBill=0;
-    let suppliers=new Set();
+    const sf = supplierFilter.value.toLowerCase();
+    const fd = fromDate.value;
+    const td = toDate.value;
 
-    const s = search.value.toLowerCase();
-    const f = fromDate.value;
-    const t = toDate.value;
-
-    // FILTER FIRST
-    const filteredEntries = ledger.filter(e=>{
-        if(s && !e.supplier.toLowerCase().includes(s)) return false;
-        if(f && e.date < f) return false;
-        if(t && e.date > t) return false;
+    data.filter(e=>{
+        if(sf && !e.supplier.toLowerCase().includes(sf)) return false;
+        if(fd && e.date < fd) return false;
+        if(td && e.date > td) return false;
         return true;
-    });
-
-    // DASHBOARD CONTEXT
-    const dashboardEntries = selectedSupplier
-        ? filteredEntries.filter(e=>e.supplier===selectedSupplier)
-        : filteredEntries;
-
-    // DASHBOARD TOTALS
-    dashboardEntries.forEach(e=>{
+    }).forEach((e,i)=>{
+        const paid = e.cash + e.upi;
         totalBill += e.bill;
-        totalPaid += e.paid;
-        totalPending += (e.bill - e.paid);
-        suppliers.add(e.supplier);
-    });
+        totalCash += e.cash;
+        totalUpi += e.upi;
+        totalPaid += paid;
 
-    // TABLE RENDER
-    filteredEntries.forEach((e,i)=>{
-        const pending = e.bill - e.paid;
-        summary.innerHTML += `
-        <tr class="${selectedSupplier===e.supplier?'active':''}"
-            onclick="selectSupplier('${e.supplier}')">
+        rows.innerHTML += `
+        <tr>
             <td>${e.supplier}</td>
-            <td>${e.bill}</td>
-            <td>${e.paid}</td>
-            <td class="${pending>0?'pending':'clear'}">${pending}</td>
-            <td class="mode">${e.mode}</td>
             <td>${e.date}</td>
-            <td class="edit" onclick="event.stopPropagation(); editEntry(${i})">Edit</td>
+            <td>${e.bill}</td>
+            <td>${e.cash}</td>
+            <td>${e.upi}</td>
+            <td>${paid}</td>
+            <td>${e.bill - paid}</td>
+            <td class="edit" onclick="edit(${i})">Edit</td>
         </tr>`;
     });
 
-    totalPending.textContent="₹"+totalPending;
-    totalPaid.textContent="₹"+totalPaid;
-    totalBill.textContent="₹"+totalBill;
-    supplierCount.textContent=suppliers.size;
+    dBill.textContent = "₹"+totalBill;
+    dCash.textContent = "₹"+totalCash;
+    dUpi.textContent = "₹"+totalUpi;
+    dPaid.textContent = "₹"+totalPaid;
+    dPending.textContent = "₹"+(totalBill-totalPaid);
 
     save();
 }
 
-/* SELECT SUPPLIER */
-function selectSupplier(name){
-    selectedSupplier=name;
-    render();
-}
-
-/* CLEAR */
-function clearSelection(){
-    selectedSupplier=null;
-    render();
-}
-
 /* ADD / UPDATE */
-form.onsubmit=e=>{
+form.onsubmit = e=>{
     e.preventDefault();
-    const data={
+    let entry={
         supplier:supplier.value.trim(),
         bill:+bill.value,
-        paid:+paid.value,
-        mode:mode.value,
+        cash:+cash.value,
+        upi:+upi.value,
         date:date.value
     };
 
+    if(entry.cash + entry.upi > entry.bill){
+        alert("Paid amount cannot exceed bill amount");
+        return;
+    }
+
     if(editIndex!==null){
-        ledger[editIndex]=data;
+        data[editIndex]=entry;
         editIndex=null;
-        saveBtn.textContent="Add Entry";
-    } else {
-        ledger.push(data);
+        saveBtn.textContent="Add Purchase";
+    }else{
+        data.push(entry);
     }
 
     form.reset();
+    cash.value=upi.value=0;
     render();
 };
 
 /* EDIT */
-function editEntry(i){
-    const e=ledger[i];
+function edit(i){
+    let e=data[i];
     supplier.value=e.supplier;
     bill.value=e.bill;
-    paid.value=e.paid;
-    mode.value=e.mode;
+    cash.value=e.cash;
+    upi.value=e.upi;
     date.value=e.date;
     editIndex=i;
     saveBtn.textContent="Update Entry";
     window.scrollTo({top:0,behavior:"smooth"});
 }
 
-/* FILTER EVENTS (RESET CONTEXT) */
-search.oninput=()=>{selectedSupplier=null;render();}
-fromDate.onchange=()=>{selectedSupplier=null;render();}
-toDate.onchange=()=>{selectedSupplier=null;render();}
+/* FILTER EVENTS */
+supplierFilter.oninput=render;
+fromDate.onchange=render;
+toDate.onchange=render;
+
+function resetFilters(){
+    supplierFilter.value="";
+    fromDate.value="";
+    toDate.value="";
+    render();
+}
 
 render();
 </script>
