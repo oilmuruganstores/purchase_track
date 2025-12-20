@@ -5,211 +5,124 @@
 <title>Oil Murugan Stores | Supplier Ledger</title>
 
 <style>
-/* ===== GLOBAL ===== */
-* { box-sizing: border-box; }
-html, body {
-    margin: 0;
-    height: 100%;
-    font-family: "Segoe UI", system-ui, sans-serif;
-    background: linear-gradient(135deg, #eef2ff, #f8fafc);
-    color: #0f172a;
+*{box-sizing:border-box}
+html,body{
+    margin:0;height:100%;
+    font-family:"Segoe UI",system-ui,sans-serif;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc);
+    color:#0f172a;
+}
+:root{
+    --blue:#2563eb;
+    --green:#16a34a;
+    --red:#dc2626;
+    --gold:#f59e0b;
+    --card:#ffffff;
+    --muted:#64748b;
+}
+.app{width:100vw;height:100vh;padding:24px;overflow:auto}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.header h1{margin:0;font-size:30px}
+.badge{background:linear-gradient(135deg,#facc15,#f59e0b);padding:8px 16px;border-radius:999px;font-weight:700}
+
+/* DASHBOARD */
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:16px;margin-bottom:25px
+}
+.card{
+    background:var(--card);
+    padding:20px;border-radius:18px;
+    box-shadow:0 12px 30px rgba(0,0,0,.08)
+}
+.card p{margin:0;color:var(--muted)}
+.card h2{margin-top:10px;font-size:30px}
+.red{color:var(--red)} .green{color:var(--green)} .blue{color:var(--blue)}
+
+/* FORM */
+.box{background:var(--card);padding:20px;border-radius:18px;margin-bottom:20px;box-shadow:0 10px 25px rgba(0,0,0,.07)}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+input,button{
+    padding:13px;border-radius:12px;
+    border:1px solid #e5e7eb;font-size:15px
+}
+button{
+    background:linear-gradient(135deg,var(--blue),#1d4ed8);
+    color:#fff;border:none;font-weight:700;cursor:pointer
 }
 
-/* ===== COLORS ===== */
-:root {
-    --primary: #1e293b;
-    --blue: #2563eb;
-    --green: #16a34a;
-    --red: #dc2626;
-    --gold: #f59e0b;
-    --card: #ffffff;
-    --muted: #64748b;
+/* FILTER */
+.filters{
+    display:grid;
+    grid-template-columns:1fr 180px 180px auto auto;
+    gap:12px;margin-bottom:15px
+}
+.clear-btn{
+    background:#e5e7eb;color:#111;font-weight:600
+}
+.export-btn{
+    background:linear-gradient(135deg,#16a34a,#15803d)
 }
 
-/* ===== LAYOUT ===== */
-.app {
-    width: 100vw;
-    height: 100vh;
-    padding: 24px;
-    overflow-y: auto;
+/* TABLE */
+.table-box{
+    background:var(--card);
+    border-radius:18px;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    overflow:hidden
 }
-
-/* ===== HEADER ===== */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+table{width:100%;border-collapse:collapse}
+th{
+    background:linear-gradient(135deg,#1e293b,#334155);
+    color:#fff;padding:15px;text-align:left
 }
-.header h1 {
-    margin: 0;
-    font-size: 30px;
-}
-.header small {
-    color: var(--muted);
-}
-.badge {
-    background: linear-gradient(135deg, #facc15, #f59e0b);
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 13px;
-}
-
-/* ===== DASHBOARD ===== */
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-    margin-bottom: 30px;
-}
-.card {
-    background: var(--card);
-    border-radius: 18px;
-    padding: 22px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-}
-.card p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--muted);
-}
-.card h2 {
-    margin-top: 10px;
-    font-size: 30px;
-}
-.card.red h2 { color: var(--red); }
-.card.green h2 { color: var(--green); }
-.card.blue h2 { color: var(--blue); }
-
-/* ===== ENTRY FORM ===== */
-.form-box {
-    background: var(--card);
-    border-radius: 18px;
-    padding: 22px;
-    margin-bottom: 25px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.07);
-}
-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-}
-input, button {
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 15px;
-    border: 1px solid #e5e7eb;
-}
-input:focus {
-    outline: none;
-    border-color: var(--blue);
-}
-button {
-    background: linear-gradient(135deg, var(--blue), #1d4ed8);
-    color: #fff;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-/* ===== SEARCH ===== */
-.search {
-    margin-bottom: 18px;
-}
-.search input {
-    width: 100%;
-}
-
-/* ===== TABLE ===== */
-.table-box {
-    background: var(--card);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-th {
-    background: linear-gradient(135deg, #1e293b, #334155);
-    color: #fff;
-    text-align: left;
-    padding: 16px;
-}
-td {
-    padding: 16px;
-    border-bottom: 1px solid #e5e7eb;
-}
-tbody tr:hover {
-    background: #f1f5f9;
-    cursor: pointer;
-}
-.pending { color: var(--red); font-weight: 700; }
-.clear { color: var(--green); font-weight: 700; }
-
-/* ===== DETAIL ===== */
-.detail {
-    margin-top: 25px;
-    background: linear-gradient(135deg, #fff7ed, #fffbeb);
-    border-radius: 18px;
-    padding: 22px;
-    border: 1px solid #fde68a;
-    display: none;
-}
-.detail h3 {
-    margin-top: 0;
-}
+td{padding:15px;border-bottom:1px solid #e5e7eb}
+tbody tr:hover{background:#f1f5f9;cursor:pointer}
+tbody tr.active{background:#e0e7ff}
+.pending{color:var(--red);font-weight:700}
+.clear{color:var(--green);font-weight:700}
+.edit{color:var(--blue);cursor:pointer;font-weight:600}
 </style>
 </head>
 
 <body>
-
 <div class="app">
 
 <!-- HEADER -->
 <div class="header">
-    <div>
-        <h1>Oil Murugan Stores</h1>
-        <small>Supplier Pending Ledger</small>
-    </div>
+    <h1>Oil Murugan Stores</h1>
     <div class="badge">Wholesale Merchant Since 1995</div>
 </div>
 
 <!-- DASHBOARD -->
 <div class="dashboard">
-    <div class="card red">
-        <p>Total Pending</p>
-        <h2 id="totalPending">₹0</h2>
-    </div>
-    <div class="card green">
-        <p>Total Paid</p>
-        <h2 id="totalPaid">₹0</h2>
-    </div>
-    <div class="card blue">
-        <p>Total Bill Amount</p>
-        <h2 id="totalBill">₹0</h2>
-    </div>
-    <div class="card">
-        <p>Suppliers Shown</p>
-        <h2 id="supplierCount">0</h2>
-    </div>
+    <div class="card"><p>Total Pending</p><h2 id="totalPending" class="red">₹0</h2></div>
+    <div class="card"><p>Total Paid</p><h2 id="totalPaid" class="green">₹0</h2></div>
+    <div class="card"><p>Total Bill</p><h2 id="totalBill" class="blue">₹0</h2></div>
+    <div class="card"><p>Suppliers Count</p><h2 id="supplierCount">0</h2></div>
 </div>
 
-<!-- FORM -->
-<div class="form-box">
+<!-- ADD ENTRY -->
+<div class="box">
 <form id="form">
     <input id="supplier" placeholder="Supplier Name" required>
     <input id="bill" type="number" placeholder="Bill Amount ₹" required>
     <input id="paid" type="number" placeholder="Paid Amount ₹" required>
-    <button>Add Entry</button>
+    <input id="date" type="date" required>
+    <button id="saveBtn">Add Entry</button>
 </form>
 </div>
 
-<!-- SEARCH -->
-<div class="search">
-    <input id="search" placeholder="🔍 Search Supplier Name">
+<!-- FILTER -->
+<div class="filters">
+    <input id="search" placeholder="🔍 Supplier name">
+    <input id="fromDate" type="date">
+    <input id="toDate" type="date">
+    <button class="clear-btn" onclick="clearSelection()">Show All</button>
+    <button class="export-btn" onclick="exportExcel()">Export Excel</button>
 </div>
 
 <!-- TABLE -->
@@ -218,131 +131,129 @@ tbody tr:hover {
 <thead>
 <tr>
     <th>Supplier</th>
-    <th>Total Bill</th>
-    <th>Total Paid</th>
+    <th>Bill</th>
+    <th>Paid</th>
     <th>Pending</th>
+    <th>Date</th>
+    <th>Edit</th>
 </tr>
 </thead>
 <tbody id="summary"></tbody>
 </table>
 </div>
 
-<!-- DETAIL -->
-<div class="detail" id="detail">
-    <h3 id="detailName"></h3>
-    <form id="paymentForm">
-        <input id="payAmount" type="number" placeholder="Add Payment ₹" required>
-        <button>Add Payment</button>
-    </form>
-    <table>
-        <thead>
-            <tr><th>Date</th><th>Bill</th><th>Paid</th><th>Pending</th></tr>
-        </thead>
-        <tbody id="detailTable"></tbody>
-    </table>
-</div>
-
 </div>
 
 <script>
-/* UTIL */
-const today = () => new Date().toISOString().split("T")[0];
-
 let ledger = JSON.parse(localStorage.getItem("ledger")) || [];
-let activeSupplier = "";
+let editIndex = null;
+let selectedSupplier = null;
 
 /* SAVE */
-function save() {
-    localStorage.setItem("ledger", JSON.stringify(ledger));
-}
+const save = () => localStorage.setItem("ledger", JSON.stringify(ledger));
 
 /* RENDER */
-function render() {
-    summary.innerHTML = "";
-    let map = {}, totalP = 0, totalPaid = 0, totalBill = 0, count = 0;
-    const filter = search.value.toLowerCase();
+function render(){
+    summary.innerHTML="";
+    let totalP=0,totalPaid=0,totalBill=0;
+    let suppliers=new Set();
 
-    ledger.forEach(e => {
-        if (!map[e.supplier]) map[e.supplier] = { bill: 0, paid: 0 };
-        map[e.supplier].bill += e.bill;
-        map[e.supplier].paid += e.paid;
-    });
+    const s=search.value.toLowerCase();
+    const f=fromDate.value;
+    const t=toDate.value;
 
-    Object.keys(map).filter(s => s.toLowerCase().includes(filter)).forEach(s => {
-        const b = map[s].bill;
-        const p = map[s].paid;
-        const pend = b - p;
+    ledger.forEach((e,i)=>{
+        if(s && !e.supplier.toLowerCase().includes(s)) return;
+        if(f && e.date<f) return;
+        if(t && e.date>t) return;
+        if(selectedSupplier && e.supplier!==selectedSupplier) return;
 
-        totalBill += b;
-        totalPaid += p;
-        totalP += pend;
-        count++;
+        const pending=e.bill-e.paid;
+        totalBill+=e.bill;
+        totalPaid+=e.paid;
+        totalP+=pending;
+        suppliers.add(e.supplier);
 
-        summary.innerHTML += `
-        <tr onclick="openDetail('${s}')">
-            <td><b>${s}</b></td>
-            <td>${b}</td>
-            <td>${p}</td>
-            <td class="${pend > 0 ? 'pending' : 'clear'}">${pend}</td>
+        summary.innerHTML+=`
+        <tr class="${selectedSupplier===e.supplier?'active':''}"
+            onclick="selectSupplier('${e.supplier}')">
+            <td>${e.supplier}</td>
+            <td>${e.bill}</td>
+            <td>${e.paid}</td>
+            <td class="${pending>0?'pending':'clear'}">${pending}</td>
+            <td>${e.date}</td>
+            <td class="edit" onclick="event.stopPropagation(); editEntry(${i})">Edit</td>
         </tr>`;
     });
 
-    totalPending.textContent = "₹" + totalP;
-    totalPaid.textContent = "₹" + totalPaid;
-    totalBill.textContent = "₹" + totalBill;
-    supplierCount.textContent = count;
+    totalPending.textContent="₹"+totalP;
+    totalPaid.textContent="₹"+totalPaid;
+    totalBill.textContent="₹"+totalBill;
+    supplierCount.textContent=suppliers.size;
 
     save();
 }
 
-/* DETAIL */
-function openDetail(name) {
-    activeSupplier = name;
-    detail.style.display = "block";
-    detailName.textContent = "Ledger: " + name;
-    detailTable.innerHTML = "";
-
-    ledger.filter(e => e.supplier === name).forEach(e => {
-        detailTable.innerHTML += `
-        <tr>
-            <td>${e.date}</td>
-            <td>${e.bill}</td>
-            <td>${e.paid}</td>
-            <td>${e.bill - e.paid}</td>
-        </tr>`;
-    });
+/* SELECT SUPPLIER */
+function selectSupplier(name){
+    selectedSupplier=name;
+    render();
 }
 
-/* ADD ENTRY */
-form.onsubmit = e => {
+/* CLEAR */
+function clearSelection(){
+    selectedSupplier=null;
+    render();
+}
+
+/* ADD / UPDATE */
+form.onsubmit=e=>{
     e.preventDefault();
-    ledger.push({
-        supplier: supplier.value.trim(),
-        bill: +bill.value,
-        paid: +paid.value,
-        date: today()
-    });
+    const data={
+        supplier:supplier.value.trim(),
+        bill:+bill.value,
+        paid:+paid.value,
+        date:date.value
+    };
+    if(editIndex!==null){
+        ledger[editIndex]=data;
+        editIndex=null;
+        saveBtn.textContent="Add Entry";
+    } else ledger.push(data);
     form.reset();
     render();
 };
 
-/* ADD PAYMENT */
-paymentForm.onsubmit = e => {
-    e.preventDefault();
-    let amt = +payAmount.value;
-    ledger.filter(e => e.supplier === activeSupplier).some(e => {
-        let pend = e.bill - e.paid;
-        let pay = Math.min(pend, amt);
-        e.paid += pay;
-        amt -= pay;
-        return amt <= 0;
-    });
-    payAmount.value = "";
-    render();
-    openDetail(activeSupplier);
-};
+/* EDIT */
+function editEntry(i){
+    const e=ledger[i];
+    supplier.value=e.supplier;
+    bill.value=e.bill;
+    paid.value=e.paid;
+    date.value=e.date;
+    editIndex=i;
+    saveBtn.textContent="Update Entry";
+    window.scrollTo({top:0,behavior:"smooth"});
+}
 
-search.oninput = render;
+/* EXPORT */
+function exportExcel(){
+    let rows=[["Supplier","Bill","Paid","Pending","Date"]];
+    summary.querySelectorAll("tr").forEach(r=>{
+        let c=r.children;
+        rows.push([c[0].innerText,c[1].innerText,c[2].innerText,c[3].innerText,c[4].innerText]);
+    });
+    let csv=rows.map(r=>r.join(",")).join("\n");
+    let blob=new Blob([csv],{type:"text/csv"});
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="supplier_ledger.csv";
+    a.click();
+}
+
+search.oninput=render;
+fromDate.onchange=render;
+toDate.onchange=render;
 
 render();
 </script>
