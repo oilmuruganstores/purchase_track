@@ -3,502 +3,769 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oil Murugan Stores | Cloud Manager</title>
+    <title>Oil Murugan Stores | Wholesale Grocery Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, setDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'oil-murugan-stores';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'oil-murugan-grocery';
 
-        window.db = db;
-        window.auth = auth;
-        window.appId = appId;
-        window.firestoreUtils = { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, setDoc };
-    </script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        ios: {
-                            bg: '#F2F2F7', card: '#FFFFFF', blue: '#007AFF',
-                            green: '#34C759', red: '#FF3B30', gray: '#8E8E93', separator: '#C6C6C8'
-                        }
-                    }
-                }
+        window.firebaseCtx = { db, auth, appId, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query };
+        
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
             }
-        }
+        };
+        initAuth();
+        window.dispatchEvent(new Event('firebase-ready'));
     </script>
+
     <style>
-        body { background-color: #F2F2F7; }
+        body { background-color: #F9FAFB; font-family: 'Plus Jakarta Sans', sans-serif; color: #111827; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        .scroller::-webkit-scrollbar { width: 6px; height: 6px; }
-        .scroller::-webkit-scrollbar-thumb { background: #C6C6C8; border-radius: 4px; }
-        .modal-backdrop { background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); }
+        .tab-content.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item.active { background: #111827; color: #FFFFFF; }
+        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .insight-pill { background: rgba(59, 130, 246, 0.1); color: #2563eb; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 800; }
+        .stat-up { color: #10b981; }
+        .stat-down { color: #ef4444; }
     </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <!-- Sidebar -->
-    <aside class="bg-white border-r border-ios-separator w-full md:w-64 flex-shrink-0 flex flex-col justify-between z-20">
-        <div>
-            <div class="p-6 border-b border-ios-separator/50">
-                <h1 class="text-xl font-bold tracking-tight text-gray-900">OIL MURUGAN <br><span class="text-ios-blue font-medium text-sm">STORES</span></h1>
-                <div id="sync-status" class="text-[10px] mt-2 flex items-center gap-1 text-gray-400">
-                    <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span> Connecting...
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col z-30">
+        <div class="p-8">
+            <h1 class="text-2xl font-black tracking-tighter text-gray-900">
+                OIL MURUGAN <br>
+                <span class="text-blue-600">STORES</span>
+            </h1>
+            <div class="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-t pt-2">
+                Wholesale Analytics Hub
+            </div>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all">
+                <i class="ph ph-layout text-xl"></i> Dashboard
+            </button>
+            <button onclick="switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-gray-500 hover:bg-gray-50">
+                <i class="ph ph-shopping-cart-simple text-xl"></i> Purchase Entry
+            </button>
+            <button onclick="switchTab('history')" id="btn-history" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-gray-500 hover:bg-gray-50">
+                <i class="ph ph-scroll text-xl"></i> Transaction History
+            </button>
+            <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-gray-500 hover:bg-gray-50">
+                <i class="ph ph-chart-line-up text-xl"></i> Data Insights
+            </button>
+        </nav>
+
+        <div class="p-8">
+            <div class="bg-blue-600 rounded-2xl p-4 text-white">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">Cloud Connected</p>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                    <span id="user-id" class="text-[10px] font-mono truncate">Syncing...</span>
                 </div>
             </div>
-            <nav class="p-4 space-y-1">
-                <button onclick="switchTab('today')" id="nav-today" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-white bg-ios-blue">
-                    <i class="ph ph-plus-circle text-lg"></i> Today's Entry
-                </button>
-                <button onclick="switchTab('history')" id="nav-history" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100">
-                    <i class="ph ph-clock-counter-clockwise text-lg"></i> History
-                </button>
-                <button onclick="switchTab('supplier')" id="nav-supplier" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100">
-                    <i class="ph ph-address-book text-lg"></i> Supplier View
-                </button>
-                <button onclick="switchTab('forecast')" id="nav-forecast" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100">
-                    <i class="ph ph-lightbulb text-lg"></i> Forecast
-                </button>
-            </nav>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto scroller p-4 md:p-8 relative">
-        <div id="toast" class="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg transform translate-x-[150%] transition-transform duration-300 z-50 flex items-center gap-2">
+    <main class="flex-1 overflow-y-auto p-4 md:p-12 relative">
+        
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed top-8 right-8 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-[200%] transition-transform duration-500 z-50 flex items-center gap-3">
             <i class="ph ph-check-circle text-green-400 text-xl"></i>
-            <span id="toast-msg">Success</span>
+            <span id="toast-msg" class="font-bold text-sm">Action Success</span>
         </div>
 
-        <!-- TAB: TODAY -->
-        <div id="today" class="tab-content active max-w-5xl mx-auto">
-            <header class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-900">Today's Purchase</h2>
-                <p class="text-gray-500 text-sm mt-1" id="current-date-display"></p>
+        <!-- TAB: DASHBOARD -->
+        <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-10">
+            <header>
+                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Executive Summary</h2>
+                <p class="text-gray-500 font-medium">Wholesale health monitor</p>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Today's Total</p>
-                    <h3 class="text-2xl font-bold text-gray-900 mt-2" id="dash-today-total">₹0</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Lifetime Buy</p>
+                    <h3 class="text-2xl font-black text-gray-900" id="dash-total-buy">₹0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Today's Paid</p>
-                    <h3 class="text-2xl font-bold text-ios-green mt-2" id="dash-today-paid">₹0</h3>
+                <div class="bg-red-50 p-6 rounded-3xl border border-red-100">
+                    <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Pending Dues</p>
+                    <h3 class="text-2xl font-black text-red-600" id="dash-total-dues">₹0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Today's Balance</p>
-                    <h3 class="text-2xl font-bold text-ios-red mt-2" id="dash-today-pending">₹0</h3>
+                <div class="bg-green-50 p-6 rounded-3xl border border-green-100">
+                    <p class="text-[10px] font-black text-green-400 uppercase tracking-widest mb-1">Total Vendors</p>
+                    <h3 class="text-2xl font-black text-green-700" id="dash-vendor-count">0</h3>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Bills</p>
+                    <h3 class="text-2xl font-black text-blue-700" id="dash-bill-count">0</h3>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <form id="entry-form" class="space-y-6">
-                    <input type="hidden" id="edit-id" value="">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
-                            <input type="text" id="inp-supplier" list="supplier-list" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-ios-blue/20 outline-none transition-all bg-gray-50 focus:bg-white" required>
-                            <datalist id="supplier-list"></datalist>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Bill Amount (₹)</label>
-                            <input type="number" id="inp-bill" class="w-full px-4 py-3 rounded-xl border border-gray-200 font-mono text-lg outline-none focus:ring-2 focus:ring-ios-blue/20 bg-gray-50" required step="0.01">
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                        <label class="block text-sm font-semibold text-gray-700 mb-4">Payment Breakdown</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div><label class="text-xs text-gray-500 mb-1 block">Cash</label><input type="number" id="inp-cash" class="w-full px-3 py-2 rounded-lg border border-gray-200" placeholder="0"></div>
-                            <div><label class="text-xs text-gray-500 mb-1 block">UPI</label><input type="number" id="inp-upi" class="w-full px-3 py-2 rounded-lg border border-gray-200" placeholder="0"></div>
-                            <div><label class="text-xs text-gray-500 mb-1 block">Net Banking</label><input type="number" id="inp-net" class="w-full px-3 py-2 rounded-lg border border-gray-200" placeholder="0"></div>
-                        </div>
-                        <div class="mt-4 flex justify-between items-center text-sm border-t pt-4">
-                            <span class="text-gray-500">Calculated Balance:</span>
-                            <span class="font-bold text-ios-red text-lg" id="calc-pending">₹0</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <button type="submit" id="submit-btn" class="flex-1 bg-gray-900 hover:bg-black text-white font-medium py-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2">
-                            <i class="ph ph-cloud-arrow-up"></i> <span id="btn-text">Save to Cloud</span>
-                        </button>
-                        <button type="button" id="cancel-edit" onclick="resetForm()" class="hidden px-6 py-4 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-medium">Cancel Edit</button>
-                    </div>
-                </form>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div class="lg:col-span-2 space-y-6">
+                    <h4 class="text-sm font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
+                        <i class="ph ph-clock-counter-clockwise"></i> Recent Activity
+                    </h4>
+                    <div id="recent-list" class="space-y-4"></div>
+                </div>
+                <div class="space-y-6">
+                    <h4 class="text-sm font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
+                        <i class="ph ph-warning-circle"></i> High Balances
+                    </h4>
+                    <div id="debtor-list" class="bg-white rounded-3xl border border-gray-100 p-6 card-shadow space-y-4"></div>
+                </div>
             </div>
+        </div>
+
+        <!-- TAB: PURCHASE ENTRY -->
+        <div id="purchase" class="tab-content max-w-4xl mx-auto">
+            <header class="mb-10 text-center">
+                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">New Stock Arrival</h2>
+                <p class="text-gray-500 font-medium italic">All entries are encrypted and saved to cloud automatically</p>
+            </header>
+
+            <form id="purchase-form" class="bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 card-shadow space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Supplier / Vendor</label>
+                        <input type="text" id="p-supplier" list="supplier-list" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold transition-all" placeholder="Enter Company Name" required>
+                        <datalist id="supplier-list"></datalist>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Grocery Category</label>
+                        <select id="p-category" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold transition-all">
+                            <option value="Pulses & Dals">Pulses & Dals</option>
+                            <option value="Grains & Rice">Grains & Rice</option>
+                            <option value="Spices & Masala">Spices & Masala</option>
+                            <option value="Sugar & Jaggery">Sugar & Jaggery</option>
+                            <option value="Snacks & FMCG">Snacks & FMCG</option>
+                            <option value="Cleaning Supplies">Cleaning Supplies</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Bill Date</label>
+                        <input type="date" id="p-date" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold transition-all" required>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Bill Total (₹)</label>
+                        <input type="number" id="p-total" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-black text-2xl text-blue-600 transition-all" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="p-8 bg-blue-50 rounded-3xl border border-blue-100">
+                    <h3 class="text-sm font-black text-blue-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <i class="ph ph-wallet"></i> Payment Details
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Amount Paid (₹)</label>
+                            <input type="number" id="p-paid" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none focus:ring-4 focus:ring-blue-100" placeholder="0.00">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Payment Mode</label>
+                            <select id="p-mode" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none focus:ring-4 focus:ring-blue-100">
+                                <option value="Cash">Cash</option>
+                                <option value="UPI / PhonePe">UPI / PhonePe</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Credit / Due">Credit / Due</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <div class="w-full p-4 bg-white/50 border border-blue-100 rounded-xl flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-500">Balance:</span>
+                                <span id="p-balance-display" class="font-black text-red-500">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-6 bg-gray-900 text-white rounded-3xl font-black text-lg hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-3">
+                    <i class="ph-fill ph-cloud-arrow-up text-blue-400"></i> Save Permanent Record
+                </button>
+            </form>
         </div>
 
         <!-- TAB: HISTORY -->
         <div id="history" class="tab-content max-w-6xl mx-auto">
-            <header class="mb-8 flex justify-between items-center">
-                <h2 class="text-3xl font-bold text-gray-900">History & Totals</h2>
-                <div class="flex gap-4 text-xs font-semibold uppercase">
-                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center">
-                        <span class="text-blue-500 block">Filtered Total</span>
-                        <span class="text-gray-900 text-base" id="hist-total-sum">₹0</span>
+            <header class="mb-10 flex flex-col md:flex-row justify-between items-end gap-4">
+                <div>
+                    <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Permanent Ledger</h2>
+                    <p class="text-gray-500 font-medium">Full procurement history secured in Firestore</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportCSV()" class="px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-gray-50">
+                        <i class="ph ph-export"></i> Export Data
+                    </button>
+                </div>
+            </header>
+
+            <div class="bg-white rounded-3xl border border-gray-200 overflow-hidden card-shadow">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Supplier</th>
+                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Payment</th>
+                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Bill Value</th>
+                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Balance</th>
+                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table" class="divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+                <div id="empty-state" class="hidden p-20 text-center text-gray-400 font-bold italic">
+                    <i class="ph ph-package text-6xl mb-4 opacity-20"></i>
+                    <p>No transactions recorded yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ANALYTICS -->
+        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Market Intelligence</h2>
+                    <p class="text-gray-500 font-medium">Comparative spending & supplier volatility metrics</p>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <div class="flex bg-gray-100 p-1 rounded-xl">
+                        <button onclick="changeTimeframe('day')" id="tf-day" class="tf-btn px-4 py-2 text-xs font-black rounded-lg">DAY</button>
+                        <button onclick="changeTimeframe('week')" id="tf-week" class="tf-btn px-4 py-2 text-xs font-black rounded-lg">WEEK</button>
+                        <button onclick="changeTimeframe('month')" id="tf-month" class="tf-btn px-4 py-2 text-xs font-black rounded-lg bg-white shadow-sm">MONTH</button>
+                        <button onclick="changeTimeframe('year')" id="tf-year" class="tf-btn px-4 py-2 text-xs font-black rounded-lg">YEAR</button>
                     </div>
-                    <div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center">
-                        <span class="text-red-500 block">Pending Balance</span>
-                        <span class="text-gray-900 text-base" id="hist-pending-sum">₹0</span>
+                    <div id="comparison-metric" class="text-xs font-bold px-3 py-1 bg-white border rounded-lg shadow-sm">
+                        <!-- Percentage change injected here -->
                     </div>
                 </div>
             </header>
-            
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center">
-                    <div class="flex-1 min-w-[200px]">
-                        <input type="text" id="hist-search" oninput="renderHistory()" placeholder="Search Supplier..." class="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm outline-none">
+
+            <!-- Growth Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Period Spend</p>
+                        <h3 class="text-2xl font-black text-gray-900" id="analytics-period-spend">₹0</h3>
                     </div>
-                    <input type="date" id="hist-date-start" onchange="renderHistory()" class="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none">
-                    <input type="date" id="hist-date-end" onchange="renderHistory()" class="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none">
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase border-b border-gray-200">
-                                <th class="p-4">Date</th>
-                                <th class="p-4">Supplier</th>
-                                <th class="p-4 text-right">Bill</th>
-                                <th class="p-4 text-right">Paid</th>
-                                <th class="p-4 text-right">Pending</th>
-                                <th class="p-4 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-table-body" class="text-sm text-gray-700"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: SUPPLIER VIEW -->
-        <div id="supplier" class="tab-content max-w-5xl mx-auto">
-             <header class="mb-8"><h2 class="text-3xl font-bold text-gray-900">Supplier Ledger</h2></header>
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                     <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Select Provider</label>
-                     <select id="ledger-select" class="w-full p-3 rounded-xl border border-gray-200 outline-none bg-gray-50" onchange="renderSupplierLedger()">
-                         <option value="">Select Supplier</option>
-                     </select>
-                     <div id="ledger-summary" class="mt-6 hidden space-y-4">
-                         <div class="flex justify-between text-sm"><span class="text-gray-500">Gross Purchase</span> <span class="font-bold" id="led-total-bill">₹0</span></div>
-                         <div class="flex justify-between text-sm text-green-600 font-medium"><span>Total Paid</span> <span id="led-total-paid">₹0</span></div>
-                         <div class="p-4 bg-red-50 rounded-xl flex justify-between items-center"><span class="text-red-600 text-xs font-bold uppercase">Balance Due</span> <span class="font-bold text-red-700 text-lg" id="led-balance">₹0</span></div>
-                     </div>
-                 </div>
-                 <div class="md:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
-                     <table class="w-full text-left text-sm">
-                         <thead class="bg-gray-50"><tr><th class="p-4">Date</th><th class="p-4 text-right">Bill</th><th class="p-4 text-right">Paid</th><th class="p-4 text-right font-bold">Bal</th></tr></thead>
-                         <tbody id="ledger-body"></tbody>
-                     </table>
-                     <div id="ledger-empty" class="p-12 text-center text-gray-400">Select a supplier to view history.</div>
-                 </div>
-             </div>
-        </div>
-
-        <!-- TAB: FORECAST -->
-        <div id="forecast" class="tab-content max-w-5xl mx-auto">
-            <header class="mb-8"><h2 class="text-3xl font-bold text-gray-900">Predicted Upcoming Spend</h2></header>
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 mb-8 flex flex-wrap gap-4 items-center">
-                <div class="flex-1">
-                    <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Predict for Supplier</label>
-                    <select id="fc-supplier-select" onchange="renderForecast()" class="w-full md:w-64 p-3 rounded-xl border border-gray-200 outline-none bg-gray-50">
-                        <option value="all">All Suppliers (Grand Total)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-gradient-to-br from-gray-900 to-blue-900 p-8 rounded-3xl text-white shadow-xl">
-                    <p class="text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">Predicted Next 7 Days</p>
-                    <h3 class="text-5xl font-bold" id="fc-next-week">₹0</h3>
-                    <div class="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
-                        <span class="text-blue-200 text-sm">Next 30 Days Forecast:</span>
-                        <span class="text-white font-bold text-xl" id="fc-next-month">₹0</span>
+                    <div id="period-trend-indicator" class="flex flex-col items-end">
+                        <span class="text-xs font-black">--</span>
                     </div>
                 </div>
-                <div class="bg-white p-8 rounded-3xl border border-gray-100">
-                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                        <i class="ph ph-sparkle text-ios-blue"></i> Smart Insights
-                    </h3>
-                    <ul id="insights-list" class="space-y-4 text-sm text-gray-600">
-                        <li class="flex gap-3"><i class="ph ph-info text-blue-500 mt-1"></i> Add more data to improve prediction accuracy.</li>
-                    </ul>
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg. Transaction</p>
+                    <h3 class="text-2xl font-black text-gray-900" id="analytics-avg-tx">₹0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Most Volatile Category</p>
+                    <h3 class="text-lg font-black text-blue-600 truncate" id="analytics-volatile-cat">Checking...</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Trend Chart -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 card-shadow">
+                        <div class="flex justify-between items-center mb-8">
+                            <h5 class="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-gray-400">
+                                <i class="ph ph-trend-up"></i> Spending Trends vs Previous
+                            </h5>
+                            <span class="insight-pill">Real-time Cloud Data</span>
+                        </div>
+                        <div class="h-80 w-full">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Supplier Reliability Table -->
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 card-shadow">
+                        <h5 class="text-sm font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
+                            <i class="ph ph-users-three"></i> Supplier Intel & Volume Analysis
+                        </h5>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="border-b border-gray-50">
+                                    <tr>
+                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px]">Supplier</th>
+                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px] text-right">Bills</th>
+                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px] text-right">Total Buy</th>
+                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px] text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="supplier-intel-table" class="divide-y divide-gray-50">
+                                    <!-- Rows injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Insights -->
+                <div class="space-y-6">
+                    <!-- AI Insight Feed -->
+                    <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] shadow-2xl space-y-6">
+                        <h5 class="text-xs font-black uppercase tracking-widest text-blue-400">Smart Insights Engine</h5>
+                        <div id="ai-insight-list" class="space-y-6">
+                            <!-- Cards with icons like "Savings Alert", "Debt Trap", "High Volume" -->
+                        </div>
+                    </div>
+
+                    <!-- Donut Charts -->
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                        <h5 class="text-xs font-black uppercase text-gray-400 mb-4">Category Mix</h5>
+                        <div class="h-48">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                        <h5 class="text-xs font-black uppercase text-gray-400 mb-4">Payment Distribution</h5>
+                        <div class="h-48">
+                            <canvas id="paymentModeChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Modals -->
-    <div id="delete-modal" class="fixed inset-0 modal-backdrop hidden z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs p-8 rounded-3xl shadow-2xl text-center">
-            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="ph ph-trash"></i></div>
-            <h4 class="text-xl font-bold text-gray-900">Delete Entry?</h4>
-            <p class="text-sm text-gray-500 mt-2">This will permanently remove the record from the cloud.</p>
-            <div class="flex gap-3 mt-8">
-                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-medium">Cancel</button>
-                <button id="confirm-delete-btn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium">Delete</button>
-            </div>
-        </div>
-    </div>
+    <script>
+        let purchases = [];
+        let userId = null;
+        let chartInstances = {};
+        let currentTF = 'month';
 
-    <script type="module">
-        let appData = [];
-        let currentUser = null;
-        let deleteId = null;
+        window.addEventListener('firebase-ready', () => {
+            const { auth, db, appId, collection, onSnapshot, query } = window.firebaseCtx;
 
-        async function startApp() {
-            const { auth, db, appId, firestoreUtils } = window;
-            const statusEl = document.getElementById('sync-status');
+            auth.onAuthStateChanged(user => {
+                if (!user) return;
+                userId = user.uid;
+                document.getElementById('user-id').innerText = `${userId}`;
 
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
-                    signInAnonymously(auth);
-                    return;
-                }
-                currentUser = user;
-                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span> Cloud Active`;
-                
-                const q = firestoreUtils.query(firestoreUtils.collection(db, 'artifacts', appId, 'users', user.uid, 'purchases'));
-                firestoreUtils.onSnapshot(q, (snapshot) => {
-                    appData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    appData.sort((a, b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
-                    refreshUI();
-                }, (error) => {
-                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Sync Error`;
-                });
+                const q = query(collection(db, 'artifacts', appId, 'users', userId, 'grocery_purchases'));
+                onSnapshot(q, (snapshot) => {
+                    purchases = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    purchases.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    renderUI();
+                }, (err) => console.error("Firestore error:", err));
             });
+        });
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active');
+            if (id === 'analytics') setTimeout(renderAnalytics, 100);
+            if (id === 'dashboard') renderDashboard();
         }
 
-        window.saveEntry = async (e) => {
+        async function handlePurchaseSubmit(e) {
             e.preventDefault();
-            if (!currentUser) return;
-            const { db, appId, firestoreUtils } = window;
+            const { db, appId, collection, addDoc } = window.firebaseCtx;
+            if (!userId) return;
 
-            const editId = document.getElementById('edit-id').value;
-            const data = {
-                date: editId ? appData.find(x => x.id === editId).date : new Date().toISOString().split('T')[0],
-                time: editId ? appData.find(x => x.id === editId).time : new Date().toLocaleTimeString('en-IN', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-                supplier: document.getElementById('inp-supplier').value.trim(),
-                bill: parseFloat(document.getElementById('inp-bill').value) || 0,
-                cash: parseFloat(document.getElementById('inp-cash').value) || 0,
-                upi: parseFloat(document.getElementById('inp-upi').value) || 0,
-                net: parseFloat(document.getElementById('inp-net').value) || 0
+            const payload = {
+                supplier: document.getElementById('p-supplier').value,
+                category: document.getElementById('p-category').value,
+                date: document.getElementById('p-date').value,
+                total: parseFloat(document.getElementById('p-total').value),
+                paid: parseFloat(document.getElementById('p-paid').value) || 0,
+                mode: document.getElementById('p-mode').value,
+                timestamp: Date.now()
             };
 
             try {
-                if (editId) {
-                    await firestoreUtils.updateDoc(firestoreUtils.doc(db, 'artifacts', appId, 'users', currentUser.uid, 'purchases', editId), data);
-                    showToast("Record Updated");
-                } else {
-                    await firestoreUtils.addDoc(firestoreUtils.collection(db, 'artifacts', appId, 'users', currentUser.uid, 'purchases'), data);
-                    showToast("Saved to Cloud");
-                }
-                resetForm();
-            } catch (err) { showToast("Error saving data"); }
-        };
-
-        window.confirmDelete = async () => {
-            if (!deleteId || !currentUser) return;
-            const { db, appId, firestoreUtils } = window;
-            await firestoreUtils.deleteDoc(firestoreUtils.doc(db, 'artifacts', appId, 'users', currentUser.uid, 'purchases', deleteId));
-            closeDeleteModal();
-            showToast("Record Deleted");
-        };
-
-        function refreshUI() {
-            updateDatalists();
-            renderTodayDashboard();
-            renderHistory();
-            renderSupplierLedger();
-            renderForecast();
+                await addDoc(collection(db, 'artifacts', appId, 'users', userId, 'grocery_purchases'), payload);
+                showToast("Entry Logged & Sync'd");
+                e.target.reset();
+                updateBalanceDisplay();
+                document.getElementById('p-date').valueAsDate = new Date();
+            } catch (err) {
+                showToast("Sync Error: " + err.message);
+            }
         }
 
-        function formatCurrency(n) { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n); }
-        
-        window.switchTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('bg-ios-blue', 'text-white'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('nav-' + id).classList.add('bg-ios-blue', 'text-white');
-        };
+        function changeTimeframe(tf) {
+            currentTF = tf;
+            document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('bg-white', 'shadow-sm'));
+            document.getElementById('tf-' + tf).classList.add('bg-white', 'shadow-sm');
+            renderAnalytics();
+        }
 
-        window.renderTodayDashboard = () => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const filtered = appData.filter(d => d.date === todayStr);
-            const total = filtered.reduce((a, b) => a + b.bill, 0);
-            const paid = filtered.reduce((a, b) => a + (b.cash + b.upi + b.net), 0);
-            document.getElementById('dash-today-total').innerText = formatCurrency(total);
-            document.getElementById('dash-today-paid').innerText = formatCurrency(paid);
-            document.getElementById('dash-today-pending').innerText = formatCurrency(total - paid);
-            document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
-        };
+        function renderUI() {
+            renderDashboard();
+            renderHistoryTable();
+            updateDatalists();
+            if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
+        }
 
-        window.renderHistory = () => {
-            const tbody = document.getElementById('history-table-body');
-            const search = document.getElementById('hist-search').value.toLowerCase();
-            const start = document.getElementById('hist-date-start').value;
-            const end = document.getElementById('hist-date-end').value;
-            
-            tbody.innerHTML = '';
-            let totalFiltered = 0;
-            let pendingFiltered = 0;
+        function renderDashboard() {
+            const totalBuy = purchases.reduce((acc, p) => acc + p.total, 0);
+            const totalDues = purchases.reduce((acc, p) => acc + (p.total - p.paid), 0);
+            const vendors = new Set(purchases.map(p => p.supplier)).size;
 
-            appData.filter(d => {
-                const matchesSearch = d.supplier.toLowerCase().includes(search);
-                const matchesStart = start ? d.date >= start : true;
-                const matchesEnd = end ? d.date <= end : true;
-                return matchesSearch && matchesStart && matchesEnd;
-            }).forEach(d => {
-                const paid = d.cash + d.upi + d.net;
-                const pend = d.bill - paid;
-                totalFiltered += d.bill;
-                pendingFiltered += pend;
+            document.getElementById('dash-total-buy').innerText = `₹${totalBuy.toLocaleString()}`;
+            document.getElementById('dash-total-dues').innerText = `₹${totalDues.toLocaleString()}`;
+            document.getElementById('dash-vendor-count').innerText = vendors;
+            document.getElementById('dash-bill-count').innerText = purchases.length;
 
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-100 hover:bg-gray-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-4 text-xs text-gray-400 font-mono">${d.date}</td>
-                    <td class="p-4 font-semibold text-gray-800">${d.supplier}</td>
-                    <td class="p-4 text-right font-medium">₹${d.bill}</td>
-                    <td class="p-4 text-right text-green-600 font-medium">₹${paid}</td>
-                    <td class="p-4 text-right font-bold ${pend > 0 ? 'text-red-500' : 'text-gray-300'}">₹${pend}</td>
-                    <td class="p-4 text-center">
-                        <div class="flex gap-2 justify-center">
-                            <button onclick="editEntry('${d.id}')" class="w-8 h-8 rounded-full hover:bg-blue-50 text-blue-500 transition-all flex items-center justify-center"><i class="ph ph-pencil"></i></button>
-                            <button onclick="openDeleteModal('${d.id}')" class="w-8 h-8 rounded-full hover:bg-red-50 text-red-400 transition-all flex items-center justify-center"><i class="ph ph-trash"></i></button>
+            const recentDiv = document.getElementById('recent-list');
+            recentDiv.innerHTML = purchases.slice(0, 5).map(p => `
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center card-shadow">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">
+                             <i class="ph ph-package text-xl"></i>
                         </div>
+                        <div>
+                            <p class="font-bold text-gray-900">${p.supplier}</p>
+                            <p class="text-xs text-gray-400 font-medium">${p.mode || 'Cash'} • ${p.date}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-gray-900">₹${p.total.toLocaleString()}</p>
+                        <p class="text-[10px] font-bold ${p.total - p.paid > 0 ? 'text-red-500' : 'text-green-500'} uppercase">
+                            ${p.total - p.paid > 0 ? 'Balance: ₹' + (p.total - p.paid).toLocaleString() : 'Paid'}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+
+            const debtsByVendor = {};
+            purchases.forEach(p => {
+                debtsByVendor[p.supplier] = (debtsByVendor[p.supplier] || 0) + (p.total - p.paid);
+            });
+            const topDebtors = Object.entries(debtsByVendor)
+                .filter(([_, amt]) => amt > 0)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const debtorDiv = document.getElementById('debtor-list');
+            debtorDiv.innerHTML = topDebtors.length === 0 ? `<p class="text-xs text-center text-gray-400 py-4 italic">No pending balances.</p>` : 
+                topDebtors.map(([name, amt]) => `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                        <span class="text-sm font-bold text-gray-700 truncate mr-2">${name}</span>
+                        <span class="text-sm font-black text-red-500">₹${amt.toLocaleString()}</span>
+                    </div>
+                `).join('');
+        }
+
+        function renderAnalytics() {
+            if (purchases.length === 0) return;
+
+            const grouped = {};
+            purchases.forEach(p => {
+                const date = new Date(p.date);
+                let key;
+                if (currentTF === 'day') key = p.date;
+                else if (currentTF === 'week') {
+                    const d = new Date(date);
+                    const day = d.getDay();
+                    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                    const monday = new Date(d.setDate(diff));
+                    key = monday.toISOString().split('T')[0];
+                }
+                else if (currentTF === 'month') key = p.date.substring(0, 7);
+                else key = p.date.substring(0, 4);
+                
+                grouped[key] = (grouped[key] || 0) + p.total;
+            });
+
+            const sortedKeys = Object.keys(grouped).sort();
+            const values = sortedKeys.map(k => grouped[k]);
+
+            // Percentage Change Calculation
+            const lastVal = values[values.length - 1] || 0;
+            const prevVal = values[values.length - 2] || 0;
+            const diff = lastVal - prevVal;
+            const pct = prevVal === 0 ? 0 : (diff / prevVal) * 100;
+
+            document.getElementById('analytics-period-spend').innerText = `₹${lastVal.toLocaleString()}`;
+            const trendInd = document.getElementById('period-trend-indicator');
+            trendInd.innerHTML = `
+                <span class="text-xs font-black ${pct >= 0 ? 'stat-up' : 'stat-down'}">
+                    ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%
+                </span>
+                <span class="text-[8px] font-bold text-gray-400 uppercase">vs Prev ${currentTF}</span>
+            `;
+
+            document.getElementById('comparison-metric').innerText = `${pct >= 0 ? 'Spending Increased' : 'Spending Decreased'} by ${Math.abs(pct).toFixed(1)}% this ${currentTF}`;
+
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            if (chartInstances.trend) chartInstances.trend.destroy();
+            
+            chartInstances.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: sortedKeys,
+                    datasets: [{
+                        label: 'Total Buy',
+                        data: values,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { grid: { borderDash: [5, 5] }, ticks: { callback: v => '₹' + v.toLocaleString() } }, 
+                        x: { grid: { display: false } } 
+                    } 
+                }
+            });
+
+            // Category & Payment Mode Analysis
+            const cats = {};
+            const modes = {};
+            purchases.forEach(p => {
+                cats[p.category] = (cats[p.category] || 0) + p.total;
+                modes[p.mode || 'Cash'] = (modes[p.mode || 'Cash'] || 0) + p.total;
+            });
+
+            // Volatile Category Calculation (Category with highest variance or change)
+            const volatile = Object.entries(cats).sort((a,b) => b[1] - a[1])[0];
+            document.getElementById('analytics-volatile-cat').innerText = volatile ? volatile[0] : 'None';
+            document.getElementById('analytics-avg-tx').innerText = `₹${(lastVal / (purchases.filter(p => p.date.includes(sortedKeys[sortedKeys.length-1])).length || 1)).toLocaleString()}`;
+
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            if (chartInstances.cat) chartInstances.cat.destroy();
+            chartInstances.cat = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(cats),
+                    datasets: [{
+                        data: Object.values(cats),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']
+                    }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+
+            const payCtx = document.getElementById('paymentModeChart').getContext('2d');
+            if (chartInstances.pay) chartInstances.pay.destroy();
+            chartInstances.pay = new Chart(payCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(modes),
+                    datasets: [{
+                        data: Object.values(modes),
+                        backgroundColor: ['#111827', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+
+            renderSupplierIntel();
+            renderSmartInsights(pct, lastVal, cats);
+        }
+
+        function renderSupplierIntel() {
+            const table = document.getElementById('supplier-intel-table');
+            const intel = {};
+            purchases.forEach(p => {
+                if(!intel[p.supplier]) intel[p.supplier] = { count: 0, total: 0 };
+                intel[p.supplier].count++;
+                intel[p.supplier].total += p.total;
+            });
+
+            const sortedIntel = Object.entries(intel).sort((a,b) => b[1].total - a[1].total);
+            table.innerHTML = sortedIntel.map(([name, data]) => `
+                <tr class="group hover:bg-gray-50 transition-colors">
+                    <td class="py-4 font-bold text-gray-900">${name}</td>
+                    <td class="py-4 text-right font-medium text-gray-500">${data.count} Bills</td>
+                    <td class="py-4 text-right font-black text-gray-900">₹${data.total.toLocaleString()}</td>
+                    <td class="py-4 text-right">
+                        <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase ${data.total > 50000 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}">
+                            ${data.total > 50000 ? 'High Value' : 'Stable'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSmartInsights(pct, currentSpend, categories) {
+            const feed = document.getElementById('ai-insight-list');
+            const sortedCats = Object.entries(categories).sort((a,b) => b[1] - a[1]);
+            const topCat = sortedCats[0];
+            const dues = purchases.reduce((acc, p) => acc + (p.total - p.paid), 0);
+
+            let insights = [];
+
+            // Insight 1: Spending Velocity
+            if (pct > 20) {
+                insights.push({
+                    title: "Procurement Spike",
+                    msg: `Spending jumped by ${pct.toFixed(0)}% this period. Monitor stock levels to prevent over-inventorying.`,
+                    icon: "ph-trend-up",
+                    color: "text-red-400"
+                });
+            } else if (pct < -10) {
+                insights.push({
+                    title: "Efficiency Gain",
+                    msg: `Spend is down by ${Math.abs(pct).toFixed(0)}%. You are managing procurement leaner than last period.`,
+                    icon: "ph-trend-down",
+                    color: "text-green-400"
+                });
+            }
+
+            // Insight 2: Category Concentration
+            if (topCat) {
+                insights.push({
+                    title: "Category Heavy",
+                    msg: `${topCat[0]} accounts for ${((topCat[1]/purchases.reduce((a,b)=>a+b.total,0))*100).toFixed(0)}% of total buy. Consider bulk-negotiation with these suppliers.`,
+                    icon: "ph-package",
+                    color: "text-blue-400"
+                });
+            }
+
+            // Insight 3: Liquidity
+            if (dues > 50000) {
+                insights.push({
+                    title: "Credit Risk",
+                    msg: `₹${dues.toLocaleString()} is currently outstanding. This might affect your priority with key wholesale vendors.`,
+                    icon: "ph-warning-diamond",
+                    color: "text-orange-400"
+                });
+            }
+
+            // Insight 4: Supplier Concentration
+            const vendorCount = new Set(purchases.map(p=>p.supplier)).size;
+            if (vendorCount < 3 && purchases.length > 10) {
+                insights.push({
+                    title: "Single Source Risk",
+                    msg: `You rely on only ${vendorCount} main suppliers. Diversifying may improve price bargaining power.`,
+                    icon: "ph-shield-checkered",
+                    color: "text-purple-400"
+                });
+            }
+
+            feed.innerHTML = insights.map(i => `
+                <div class="flex gap-4">
+                    <div class="mt-1"><i class="ph-bold ${i.icon} ${i.color} text-xl"></i></div>
+                    <div>
+                        <h6 class="text-xs font-black uppercase tracking-widest text-white">${i.title}</h6>
+                        <p class="text-[11px] font-medium text-gray-400 leading-relaxed mt-1">${i.msg}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table');
+            const empty = document.getElementById('empty-state');
+            tbody.innerHTML = '';
+
+            if (purchases.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            purchases.forEach(p => {
+                const balance = p.total - p.paid;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-6 font-mono text-xs text-gray-400">${p.date}</td>
+                    <td class="p-6 font-bold text-gray-900">${p.supplier}</td>
+                    <td class="p-6">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-tighter">${p.mode || 'Cash'}</span>
+                            <span class="text-xs font-bold text-blue-600">₹${p.paid.toLocaleString()} Paid</span>
+                        </div>
+                    </td>
+                    <td class="p-6 text-right font-black text-gray-900">₹${p.total.toLocaleString()}</td>
+                    <td class="p-6 text-right font-bold ${balance > 0 ? 'text-red-500' : 'text-green-500'}">₹${balance.toLocaleString()}</td>
+                    <td class="p-6 text-center">
+                        <button onclick="deleteRecord('${p.id}')" class="w-10 h-10 rounded-xl text-red-400 hover:bg-red-50 transition-all">
+                            <i class="ph ph-trash"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-            document.getElementById('hist-total-sum').innerText = formatCurrency(totalFiltered);
-            document.getElementById('hist-pending-sum').innerText = formatCurrency(pendingFiltered);
-        };
-
-        window.editEntry = (id) => {
-            const item = appData.find(x => x.id === id);
-            document.getElementById('edit-id').value = id;
-            document.getElementById('inp-supplier').value = item.supplier;
-            document.getElementById('inp-bill').value = item.bill;
-            document.getElementById('inp-cash').value = item.cash;
-            document.getElementById('inp-upi').value = item.upi;
-            document.getElementById('inp-net').value = item.net;
-            document.getElementById('btn-text').innerText = "Update Record";
-            document.getElementById('cancel-edit').classList.remove('hidden');
-            switchTab('today');
-        };
-
-        window.resetForm = () => {
-            document.getElementById('entry-form').reset();
-            document.getElementById('edit-id').value = '';
-            document.getElementById('btn-text').innerText = "Save to Cloud";
-            document.getElementById('cancel-edit').classList.add('hidden');
-        };
-
-        window.renderSupplierLedger = () => {
-            const name = document.getElementById('ledger-select').value;
-            const tbody = document.getElementById('ledger-body');
-            const summary = document.getElementById('ledger-summary');
-            const empty = document.getElementById('ledger-empty');
-            tbody.innerHTML = '';
-
-            if (!name) { summary.classList.add('hidden'); empty.classList.remove('hidden'); return; }
-            summary.classList.remove('hidden'); empty.classList.add('hidden');
-
-            const subset = appData.filter(d => d.supplier === name);
-            let totalBill = 0, totalPaid = 0;
-
-            subset.forEach(d => {
-                const paid = d.cash + d.upi + d.net;
-                const bal = d.bill - paid;
-                totalBill += d.bill;
-                totalPaid += paid;
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-100";
-                tr.innerHTML = `<td class="p-4 text-xs">${d.date}</td><td class="p-4 text-right">₹${d.bill}</td><td class="p-4 text-right">₹${paid}</td><td class="p-4 text-right font-bold text-red-500">₹${bal}</td>`;
-                tbody.appendChild(tr);
-            });
-            document.getElementById('led-total-bill').innerText = formatCurrency(totalBill);
-            document.getElementById('led-total-paid').innerText = formatCurrency(totalPaid);
-            document.getElementById('led-balance').innerText = formatCurrency(totalBill - totalPaid);
-        };
-
-        window.renderForecast = () => {
-            const target = document.getElementById('fc-supplier-select').value;
-            const subset = target === 'all' ? appData : appData.filter(d => d.supplier === target);
-            const insights = document.getElementById('insights-list');
-            insights.innerHTML = '';
-
-            if (subset.length < 2) {
-                document.getElementById('fc-next-week').innerText = "₹0";
-                document.getElementById('fc-next-month').innerText = "₹0";
-                insights.innerHTML = '<li><i class="ph ph-warning-circle text-orange-400"></i> Need at least 2 entries for projection.</li>';
-                return;
-            }
-
-            // Simple Linear Projection: Average Daily Spend based on historical range
-            const dates = subset.map(d => new Date(d.date).getTime());
-            const minDate = Math.min(...dates);
-            const maxDate = Math.max(...dates);
-            const daysDiff = Math.max(1, (maxDate - minDate) / (1000 * 60 * 60 * 24));
-            const totalSpend = subset.reduce((a, b) => a + b.bill, 0);
-            const avgDaily = totalSpend / daysDiff;
-
-            const nextWeek = avgDaily * 7;
-            const nextMonth = avgDaily * 30;
-
-            document.getElementById('fc-next-week').innerText = formatCurrency(nextWeek);
-            document.getElementById('fc-next-month').innerText = formatCurrency(nextMonth);
-
-            // Add Insights
-            const topSupplier = [...new Set(appData.map(d => d.supplier))].map(s => ({
-                name: s, total: appData.filter(x => x.supplier === s).reduce((a,b) => a + b.bill, 0)
-            })).sort((a,b) => b.total - a.total)[0];
-
-            insights.innerHTML += `<li><i class="ph ph-chart-line text-blue-500"></i> Daily average spend for ${target === 'all' ? 'everything' : target} is ${formatCurrency(avgDaily)}.</li>`;
-            if (topSupplier) insights.innerHTML += `<li><i class="ph ph-crown text-yellow-500"></i> Biggest supplier by volume is <strong>${topSupplier.name}</strong>.</li>`;
-        };
-
-        function updateDatalists() {
-            const sups = [...new Set(appData.map(d => d.supplier))].sort();
-            document.getElementById('supplier-list').innerHTML = sups.map(s => `<option value="${s}">`).join('');
-            const ls = document.getElementById('ledger-select');
-            const fs = document.getElementById('fc-supplier-select');
-            const curL = ls.value; const curF = fs.value;
-            ls.innerHTML = '<option value="">Select Supplier</option>' + sups.map(s => `<option value="${s}">${s}</option>`).join('');
-            fs.innerHTML = '<option value="all">All Suppliers Combined</option>' + sups.map(s => `<option value="${s}">${s}</option>`).join('');
-            ls.value = curL; fs.value = curF;
         }
 
-        window.openDeleteModal = (id) => { deleteId = id; document.getElementById('delete-modal').classList.remove('hidden'); };
-        window.closeDeleteModal = () => { document.getElementById('delete-modal').classList.add('hidden'); };
-        document.getElementById('confirm-delete-btn').onclick = () => window.confirmDelete();
-        document.getElementById('entry-form').onsubmit = (e) => window.saveEntry(e);
+        async function deleteRecord(id) {
+            if(!confirm("Permanently delete this record from Cloud?")) return;
+            const { db, appId, doc, deleteDoc } = window.firebaseCtx;
+            await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'grocery_purchases', id));
+            showToast("Record Deleted");
+        }
+
+        function updateDatalists() {
+            const sups = [...new Set(purchases.map(p => p.supplier))];
+            document.getElementById('supplier-list').innerHTML = sups.map(s => `<option value="${s}">`).join('');
+        }
+
+        function updateBalanceDisplay() {
+            const total = parseFloat(document.getElementById('p-total').value) || 0;
+            const paid = parseFloat(document.getElementById('p-paid').value) || 0;
+            const modeSelect = document.getElementById('p-mode');
+            
+            if (total > 0 && paid === 0) {
+                modeSelect.value = "Credit / Due";
+            } else if (total > 0 && paid === total && modeSelect.value === "Credit / Due") {
+                modeSelect.value = "Cash";
+            }
+
+            document.getElementById('p-balance-display').innerText = `₹${(total - paid).toLocaleString()}`;
+        }
 
         function showToast(m) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = m;
-            t.classList.remove('translate-x-[150%]');
-            setTimeout(() => t.classList.add('translate-x-[150%]'), 3000);
+            t.classList.remove('translate-x-[200%]');
+            setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
         }
 
-        startApp();
+        function exportCSV() {
+            let csv = "Date,Supplier,Category,Mode,Total,Paid,Balance\n";
+            purchases.forEach(p => csv += `${p.date},"${p.supplier}",${p.category},${p.mode || 'Cash'},${p.total},${p.paid},${p.total-p.paid}\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Oil_Murugan_Stores_Master_Ledger.csv`;
+            a.click();
+        }
+
+        document.getElementById('purchase-form').onsubmit = handlePurchaseSubmit;
+        document.getElementById('p-total').oninput = updateBalanceDisplay;
+        document.getElementById('p-paid').oninput = updateBalanceDisplay;
+        document.getElementById('p-date').valueAsDate = new Date();
     </script>
 </body>
 </html>
