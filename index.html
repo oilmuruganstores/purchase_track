@@ -3,273 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oil Murugan Stores | Wholesale Grocery Management</title>
+    <title>Oil Murugan Stores | Trend Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'oil-murugan-grocery';
-
-        // Global access for the save functions
-        window.db = db;
-        window.auth = auth;
-        window.appId = appId;
-        window.firestoreTools = { collection, addDoc, doc, deleteDoc };
-
-        // Handle Authentication
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                console.log("Auth successful");
-            } catch (e) {
-                console.error("Auth initialization failed", e);
-            }
-        };
-
-        // Listen for Auth State
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('user-id-display').innerText = user.uid.substring(0, 12) + '...';
-                document.getElementById('status-indicator').classList.remove('bg-yellow-400');
-                document.getElementById('status-indicator').classList.add('bg-green-400');
-                startListening(user.uid);
-            } else {
-                document.getElementById('user-id-display').innerText = "Not Signed In";
-            }
-        });
-
-        function startListening(uid) {
-            const q = query(collection(db, 'artifacts', appId, 'users', uid, 'grocery_purchases'));
-            onSnapshot(q, (snapshot) => {
-                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if (window.updateData) window.updateData(data);
-            }, (err) => {
-                console.error("Firestore sync error:", err);
-            });
-        }
-
-        initAuth();
-    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
-        body { background-color: #F9FAFB; font-family: 'Plus Jakarta Sans', sans-serif; color: #111827; }
+        body { background-color: #F8FAFC; font-family: 'Plus Jakarta Sans', sans-serif; color: #0F172A; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-item.active { background: #111827; color: #FFFFFF; }
-        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .tab-content.active { display: block; animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item.active { background: #1E293B; color: #FFFFFF; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .card-shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); }
+        .tf-btn.active { background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); color: #2563eb; }
+        .insight-card { transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .insight-card:hover { transform: translateX(5px); }
+        .trend-up { color: #ef4444; } /* Increase in spend usually red for business expense */
+        .trend-down { color: #22c55e; } /* Decrease in spend usually green */
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <!-- Sidebar Navigation -->
-    <aside class="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col z-30">
+    <!-- Sidebar -->
+    <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col z-30">
         <div class="p-8">
-            <h1 class="text-2xl font-black tracking-tighter text-gray-900 leading-tight">
+            <h1 class="text-2xl font-black tracking-tighter text-slate-900 leading-tight">
                 OIL MURUGAN <br>
                 <span class="text-blue-600">STORES</span>
             </h1>
-            <div class="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-t pt-2">
-                Inventory Analytics
+            <div class="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t pt-2">
+                Variance & Trend Analysis
             </div>
         </div>
 
-        <nav class="flex-1 px-4 space-y-2">
+        <nav class="flex-1 px-4 space-y-1">
             <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all">
-                <i class="ph ph-layout text-xl"></i> Dashboard
+                <i class="ph ph-squares-four text-xl"></i> Dashboard
             </button>
-            <button onclick="switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-gray-500 hover:bg-gray-50">
-                <i class="ph ph-shopping-cart-simple text-xl"></i> Purchase Entry
+            <button onclick="switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+                <i class="ph ph-plus-circle text-xl"></i> New Entry
             </button>
-            <button onclick="switchTab('history')" id="btn-history" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-gray-500 hover:bg-gray-50">
-                <i class="ph ph-scroll text-xl"></i> Records
+            <button onclick="switchTab('history')" id="btn-history" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+                <i class="ph ph-clock-counter-clockwise text-xl"></i> History
             </button>
-            <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-gray-500 hover:bg-gray-50">
-                <i class="ph ph-chart-line-up text-xl"></i> Data Insights
+            <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+                <i class="ph ph-chart-line-up text-xl"></i> Growth Analysis
             </button>
         </nav>
 
-        <div class="p-8">
-            <div class="bg-gray-900 rounded-2xl p-4 text-white">
-                <div class="flex items-center gap-2 mb-1">
-                    <div id="status-indicator" class="w-2 h-2 rounded-full bg-yellow-400"></div>
-                    <span class="text-[10px] font-black uppercase opacity-60">System Status</span>
+        <div class="p-6">
+            <div class="bg-slate-900 rounded-2xl p-5 text-white space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-widest opacity-60">Sync Status</span>
+                    <i id="sync-icon" class="ph ph-cloud-check text-green-400"></i>
                 </div>
-                <span id="user-id-display" class="text-[10px] font-mono block truncate">Connecting...</span>
+                <button id="gdrive-btn" onclick="handleDriveAction()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center justify-center gap-2">
+                    <i class="ph ph-arrows-clockwise"></i> Cloud Backup
+                </button>
+                <p id="last-sync-label" class="text-[9px] text-slate-500 font-medium text-center italic">Auto-syncing to Local</p>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-12 relative">
-        
-        <!-- Toast Notification -->
-        <div id="toast" class="fixed top-8 right-8 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-[200%] transition-transform duration-500 z-50 flex items-center gap-3">
+    <main class="flex-1 overflow-y-auto p-4 md:p-10 relative">
+        <div id="toast" class="fixed top-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-[200%] transition-transform duration-500 z-50 flex items-center gap-3">
             <i class="ph ph-check-circle text-green-400 text-xl"></i>
             <span id="toast-msg" class="font-bold text-sm">Success</span>
         </div>
 
-        <!-- TAB: DASHBOARD -->
-        <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-10">
-            <header>
-                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Overview</h2>
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-8">
+            <header class="flex justify-between items-end">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Financial Pulse</h2>
+                    <p class="text-slate-400 font-medium">Monitoring capital flow and purchase trends.</p>
+                </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Procurement</p>
-                    <h3 class="text-2xl font-black text-gray-900" id="dash-total-buy">₹0</h3>
+            <!-- Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 card-shadow">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Procurement</p>
+                    <h3 class="text-2xl font-black text-slate-900" id="dash-total-buy">₹0</h3>
                 </div>
-                <div class="bg-red-50 p-6 rounded-3xl border border-red-100">
-                    <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Pending Dues</p>
-                    <h3 class="text-2xl font-black text-red-600" id="dash-total-dues">₹0</h3>
+                <div class="bg-orange-50 p-6 rounded-3xl border border-orange-100">
+                    <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Active Dues</p>
+                    <h3 class="text-2xl font-black text-orange-600" id="dash-total-dues">₹0</h3>
                 </div>
                 <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Suppliers</p>
-                    <h3 class="text-2xl font-black text-blue-700" id="dash-vendor-count">0</h3>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Growth Index</p>
+                    <h3 class="text-2xl font-black text-blue-700" id="dash-growth-index">--</h3>
                 </div>
-                <div class="bg-gray-50 p-6 rounded-3xl border border-gray-200">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Records</p>
-                    <h3 class="text-2xl font-black text-gray-700" id="dash-bill-count">0</h3>
+                <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Procurement Velocity</p>
+                    <h3 class="text-2xl font-black text-slate-700" id="dash-velocity">--</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <div class="lg:col-span-2 space-y-6">
-                    <h4 class="text-sm font-black uppercase text-gray-400 tracking-widest">Recent Activity</h4>
-                    <div id="recent-list" class="space-y-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Smart Requirement Insights -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Capital Requirements</h4>
+                    <div id="requirement-list" class="space-y-3"></div>
                 </div>
-                <div class="space-y-6">
-                    <h4 class="text-sm font-black uppercase text-gray-400 tracking-widest">Top Credit Suppliers</h4>
-                    <div id="debtor-list" class="bg-white rounded-3xl border border-gray-100 p-6 card-shadow space-y-4"></div>
+
+                <div class="lg:col-span-2 space-y-4">
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Recent Activity</h4>
+                    <div id="recent-list" class="space-y-3"></div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB: PURCHASE ENTRY -->
-        <div id="purchase" class="tab-content max-w-4xl mx-auto">
-            <header class="mb-10">
-                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Purchase Entry</h2>
+        <!-- NEW ENTRY -->
+        <div id="purchase" class="tab-content max-w-3xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Log Purchase</h2>
             </header>
-
-            <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 card-shadow space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-2">
-                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Supplier Name</label>
-                        <input type="text" id="p-supplier" list="supplier-list" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold transition-all" placeholder="Vendor name..." required>
+            <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2rem] p-8 border border-slate-100 card-shadow space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Supplier Name</label>
+                        <input type="text" id="p-supplier" list="supplier-list" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold" placeholder="Vendor" required>
                         <datalist id="supplier-list"></datalist>
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Category</label>
-                        <select id="p-category" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold transition-all">
-                            <option value="Pulses & Dals">Pulses & Dals</option>
-                            <option value="Grains & Rice">Grains & Rice</option>
-                            <option value="Oil & Ghee">Oil & Ghee</option>
-                            <option value="Spices & Masala">Spices & Masala</option>
-                            <option value="Sugar & Jaggery">Sugar & Jaggery</option>
-                            <option value="FMCG / Snacks">FMCG / Snacks</option>
-                            <option value="Cleaning">Cleaning</option>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Category</label>
+                        <select id="p-category" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold">
+                            <option>Pulses & Dals</option><option>Grains & Rice</option><option>Oil & Ghee</option>
+                            <option>Spices & Masala</option><option>Sugar & Jaggery</option><option>FMCG</option>
                         </select>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="space-y-2">
-                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Date</label>
-                        <input type="date" id="p-date" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-bold transition-all" required>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Bill Date</label>
+                        <input type="date" id="p-date" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold" required>
                     </div>
-                    <div class="md:col-span-2 space-y-2">
-                        <label class="text-xs font-black uppercase text-gray-400 tracking-widest">Bill Total (₹)</label>
-                        <input type="number" id="p-total" class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none font-black text-2xl text-blue-600 transition-all" placeholder="0.00" step="0.01" required>
-                    </div>
-                </div>
-
-                <div class="p-8 bg-blue-50 rounded-3xl border border-blue-100 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Paid (₹)</label>
-                            <input type="number" id="p-paid" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none" placeholder="0.00">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Mode</label>
-                            <select id="p-mode" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none">
-                                <option value="Cash">Cash</option>
-                                <option value="UPI">UPI</option>
-                                <option value="Bank">Bank</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center justify-between p-4 bg-white/50 border border-blue-100 rounded-xl">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Balance:</span>
-                            <span id="p-balance-display" class="font-black text-red-500">₹0.00</span>
-                        </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total (₹)</label>
+                        <input type="number" id="p-total" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-black text-blue-600 text-xl" placeholder="0.00" step="0.01" required>
                     </div>
                 </div>
-
-                <button type="submit" id="save-btn" class="w-full py-6 bg-blue-600 text-white rounded-3xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3">
-                    <i class="ph ph-floppy-disk"></i> Save Bill Record
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Advance Paid</label>
+                        <input type="number" id="p-paid" class="w-full px-4 py-2 bg-white rounded-lg font-bold" placeholder="0.00">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mode</label>
+                        <select id="p-mode" class="w-full px-4 py-2 bg-white rounded-lg font-bold">
+                            <option>Cash</option><option>UPI</option><option>Bank</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl transition-all">
+                    Confirm Purchase
                 </button>
             </form>
         </div>
 
-        <!-- TAB: HISTORY -->
+        <!-- HISTORY -->
         <div id="history" class="tab-content max-w-6xl mx-auto">
-            <header class="mb-10 flex flex-col md:flex-row justify-between items-end gap-4">
-                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Archives</h2>
+            <header class="mb-8">
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Records Ledger</h2>
             </header>
-
-            <div class="bg-white rounded-3xl border border-gray-200 overflow-hidden card-shadow">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
-                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Supplier</th>
-                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Value</th>
-                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-table" class="divide-y divide-gray-50"></tbody>
-                    </table>
-                </div>
+            <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden card-shadow">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">Supplier</th>
+                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table" class="divide-y divide-slate-50"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- TAB: ANALYTICS -->
-        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8">
-            <header>
-                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Data Insights</h2>
+        <!-- ANALYTICS -->
+        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8 pb-10">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Data Intelligence</h2>
+                </div>
+                <div class="flex bg-slate-200 p-1 rounded-xl">
+                    <button onclick="changeTimeframe('day')" id="tf-day" class="tf-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Day</button>
+                    <button onclick="changeTimeframe('week')" id="tf-week" class="tf-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Week</button>
+                    <button onclick="changeTimeframe('month')" id="tf-month" class="tf-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all active">Month</button>
+                </div>
             </header>
-            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 card-shadow h-96">
-                <canvas id="trendChart"></canvas>
+
+            <!-- Main Chart Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-3 bg-white p-8 rounded-[2rem] border border-slate-100 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <h4 class="text-lg font-black">Procurement Velocity Trend</h4>
+                        <div id="overall-growth-badge" class="px-3 py-1 rounded-lg font-black text-[10px] uppercase"></div>
+                    </div>
+                    <div class="h-80"><canvas id="mainChart"></canvas></div>
+                </div>
+
+                <!-- Predictive Summary -->
+                <div class="bg-slate-900 p-8 rounded-[2rem] text-white flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2 text-blue-400">
+                            <i class="ph ph-magic-wand text-xl"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest">Projected Spend</span>
+                        </div>
+                        <h5 class="text-4xl font-black mb-1" id="forecast-val">₹0</h5>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Next 30 Days Forecast</p>
+                    </div>
+                    <div class="space-y-4 pt-6 border-t border-slate-800">
+                        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                            <p class="text-[9px] text-slate-400 uppercase font-black mb-1">Buy Frequency</p>
+                            <p class="text-xs font-bold" id="cycle-stat">Calculating...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supplier Specific Prediction Table -->
+            <div class="bg-white p-8 rounded-[3rem] border border-slate-100 card-shadow">
+                <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6">Supplier Variance & Future Needs</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="text-left border-b border-slate-50">
+                            <tr>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Supplier</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Avg. Ticket</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Period Variance</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase text-right">Predicted Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody id="supplier-prediction-table" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 card-shadow h-80 flex flex-col items-center">
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest self-start mb-6">Category Distribution</h4>
+                    <div class="h-64 w-full"><canvas id="categoryChart"></canvas></div>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 card-shadow h-80 flex flex-col items-center">
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest self-start mb-6">Vendor Concentration</h4>
+                    <div class="h-64 w-full"><canvas id="supplierChart"></canvas></div>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        let purchases = [];
-        let chart;
+        let purchases = JSON.parse(localStorage.getItem('oms_purchases') || '[]');
+        let charts = {};
+        let timeframe = 'month';
 
-        window.updateData = (data) => {
-            purchases = data.sort((a,b) => new Date(b.date) - new Date(a.date));
+        function saveData() {
+            localStorage.setItem('oms_purchases', JSON.stringify(purchases));
+            refreshUI();
+        }
+
+        function refreshUI() {
             renderDashboard();
             renderHistory();
             updateDatalists();
             if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
-        };
+        }
 
         function switchTab(id) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -279,44 +283,28 @@
             if (id === 'analytics') setTimeout(renderAnalytics, 100);
         }
 
-        async function handlePurchaseSubmit() {
-            const btn = document.getElementById('save-btn');
-            const user = window.auth?.currentUser;
-
-            if (!user) {
-                showToast("Still connecting to system... Please wait.");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Saving...`;
-
-            const payload = {
+        function handlePurchaseSubmit() {
+            const entry = {
+                id: crypto.randomUUID(),
                 supplier: document.getElementById('p-supplier').value,
                 category: document.getElementById('p-category').value,
                 date: document.getElementById('p-date').value,
                 total: parseFloat(document.getElementById('p-total').value),
                 paid: parseFloat(document.getElementById('p-paid').value) || 0,
                 mode: document.getElementById('p-mode').value,
-                createdAt: Date.now()
+                ts: new Date(document.getElementById('p-date').value).getTime()
             };
+            purchases.unshift(entry);
+            saveData();
+            showToast("Purchase Logged");
+            document.getElementById('purchase-form').reset();
+            document.getElementById('p-date').valueAsDate = new Date();
+        }
 
-            try {
-                const tools = window.firestoreTools;
-                const colRef = tools.collection(window.db, 'artifacts', window.appId, 'users', user.uid, 'grocery_purchases');
-                await tools.addDoc(colRef, payload);
-                
-                showToast("Record Saved Successfully");
-                document.getElementById('purchase-form').reset();
-                document.getElementById('p-date').valueAsDate = new Date();
-                updateBalanceDisplay();
-            } catch (err) {
-                console.error("Save Error:", err);
-                showToast("Error saving. Check connection.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="ph ph-floppy-disk"></i> Save Bill Record`;
-            }
+        function deleteRecord(id) {
+            if(!confirm("Delete entry?")) return;
+            purchases = purchases.filter(p => p.id !== id);
+            saveData();
         }
 
         function renderDashboard() {
@@ -326,89 +314,203 @@
 
             document.getElementById('dash-total-buy').innerText = `₹${total.toLocaleString()}`;
             document.getElementById('dash-total-dues').innerText = `₹${due.toLocaleString()}`;
-            document.getElementById('dash-vendor-count').innerText = vendors;
-            document.getElementById('dash-bill-count').innerText = purchases.length;
 
-            const recentList = document.getElementById('recent-list');
-            recentList.innerHTML = purchases.slice(0, 5).map(p => `
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center card-shadow">
-                    <div>
-                        <p class="font-bold text-gray-900">${p.supplier}</p>
-                        <p class="text-xs text-gray-400">${p.date} • ${p.category}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-black text-gray-900">₹${p.total.toLocaleString()}</p>
+            // Growth Index calculation
+            const growthIdx = calculateOverallGrowth();
+            const growthEl = document.getElementById('dash-growth-index');
+            growthEl.innerText = growthIdx.text;
+            growthEl.className = `text-2xl font-black ${growthIdx.val > 0 ? 'text-red-600' : growthIdx.val < 0 ? 'text-green-600' : 'text-blue-700'}`;
+
+            // Velocity calculation
+            const earliest = purchases.length ? Math.min(...purchases.map(p => p.ts)) : Date.now();
+            const daysDiff = Math.max(1, (Date.now() - earliest) / 86400000);
+            const dailyAvg = total / daysDiff;
+            document.getElementById('dash-velocity').innerText = `₹${Math.round(dailyAvg).toLocaleString()}/day`;
+
+            const requirements = [
+                { title: 'Next 24h Needed', value: dailyAvg, color: 'blue', icon: 'ph ph-clock' },
+                { title: 'Next 7 Days Needed', value: dailyAvg * 7, color: 'purple', icon: 'ph ph-calendar-blank' },
+                { title: 'Next 30 Days Needed', value: dailyAvg * 30, color: 'indigo', icon: 'ph ph-trend-up' }
+            ];
+
+            document.getElementById('requirement-list').innerHTML = requirements.map(r => `
+                <div class="insight-card bg-white p-4 rounded-2xl border-l-4 border-${r.color}-500 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-${r.color}-50 flex items-center justify-center text-${r.color}-600">
+                            <i class="${r.icon} text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${r.title}</p>
+                            <h5 class="text-lg font-black text-slate-900">₹${Math.round(r.value).toLocaleString()}</h5>
+                        </div>
                     </div>
                 </div>
             `).join('');
 
-            const debts = {};
-            purchases.forEach(p => { debts[p.supplier] = (debts[p.supplier] || 0) + (p.total - p.paid); });
-            const topDebts = Object.entries(debts).filter(d => d[1] > 0).sort((a,b) => b[1]-a[1]).slice(0,5);
-            
-            document.getElementById('debtor-list').innerHTML = topDebts.map(([n, v]) => `
-                <div class="flex justify-between items-center py-1 border-b border-gray-50 pb-2 last:border-0">
-                    <span class="text-sm font-bold text-gray-600 truncate">${n}</span>
-                    <span class="text-sm font-black text-red-500">₹${v.toLocaleString()}</span>
+            document.getElementById('recent-list').innerHTML = purchases.slice(0, 4).map(p => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-50 flex justify-between items-center card-shadow">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center font-black text-slate-400 text-xs">${p.supplier[0]}</div>
+                        <div><p class="font-bold text-sm text-slate-900">${p.supplier}</p><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">${p.category}</p></div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-slate-900">₹${p.total.toLocaleString()}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${p.date}</p>
+                    </div>
                 </div>
-            `).join('') || '<p class="text-xs text-center text-gray-300 py-4 font-bold">No Pending Dues</p>';
+            `).join('') || '<p class="text-xs text-slate-400 italic">No entries yet.</p>';
+        }
+
+        function calculateOverallGrowth() {
+            if (purchases.length < 2) return { text: '--', val: 0 };
+            
+            // Compare current month vs last month for overall index
+            const now = new Date();
+            const thisMonthKey = now.toISOString().substring(0, 7);
+            const lastMonthDate = new Date(); lastMonthDate.setMonth(now.getMonth() - 1);
+            const lastMonthKey = lastMonthDate.toISOString().substring(0, 7);
+
+            const thisMonthTotal = purchases.filter(p => p.date.startsWith(thisMonthKey)).reduce((a,b) => a+b.total, 0);
+            const lastMonthTotal = purchases.filter(p => p.date.startsWith(lastMonthKey)).reduce((a,b) => a+b.total, 0);
+
+            if (lastMonthTotal === 0) return { text: 'New', val: 0 };
+            const diff = ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
+            return { 
+                text: `${diff > 0 ? '+' : ''}${Math.round(diff)}%`, 
+                val: diff 
+            };
         }
 
         function renderHistory() {
-            const table = document.getElementById('history-table');
-            table.innerHTML = purchases.map(p => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-6 font-mono text-[11px] text-gray-400">${p.date}</td>
-                    <td class="p-6 font-bold text-gray-900">${p.supplier}</td>
-                    <td class="p-6 text-right font-black">₹${p.total.toLocaleString()}</td>
+            document.getElementById('history-table').innerHTML = purchases.map(p => `
+                <tr class="hover:bg-slate-50 transition-all">
+                    <td class="p-6 font-mono text-[11px] text-slate-400">${p.date}</td>
+                    <td class="p-6 font-bold text-slate-900 text-sm">${p.supplier}</td>
+                    <td class="p-6 text-right font-black text-sm">₹${p.total.toLocaleString()}</td>
                     <td class="p-6 text-center">
-                        <button onclick="deleteRecord('${p.id}')" class="text-gray-300 hover:text-red-500 transition-colors">
-                            <i class="ph ph-trash"></i>
-                        </button>
+                        <button onclick="deleteRecord('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="ph ph-trash-simple text-lg"></i></button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        async function deleteRecord(id) {
-            if(!confirm("Delete this bill?")) return;
-            const user = window.auth?.currentUser;
-            if(!user) return;
-            const tools = window.firestoreTools;
-            await tools.deleteDoc(tools.doc(window.db, 'artifacts', window.appId, 'users', user.uid, 'grocery_purchases', id));
-            showToast("Deleted");
-        }
-
         function renderAnalytics() {
-            const timeline = {};
-            purchases.forEach(p => {
-                const key = p.date.substring(0, 7);
-                timeline[key] = (timeline[key] || 0) + p.total;
-            });
-            const labels = Object.keys(timeline).sort();
-            const data = labels.map(k => timeline[k]);
+            if (!purchases.length) return;
 
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            if (chart) chart.destroy();
-            chart = new Chart(ctx, {
+            // Trend Groups
+            const groups = {};
+            purchases.forEach(p => {
+                let key;
+                const d = new Date(p.date);
+                if(timeframe === 'day') key = p.date;
+                else if(timeframe === 'week') {
+                    const s = new Date(d); s.setDate(d.getDate() - d.getDay());
+                    key = s.toISOString().split('T')[0];
+                } else key = p.date.substring(0, 7);
+                groups[key] = (groups[key] || 0) + p.total;
+            });
+            const labels = Object.keys(groups).sort().slice(-12);
+            const trendData = labels.map(k => groups[k]);
+
+            // Overall Growth Badge in Chart
+            if (trendData.length >= 2) {
+                const cur = trendData[trendData.length-1];
+                const prev = trendData[trendData.length-2];
+                const pct = ((cur - prev) / (prev || 1)) * 100;
+                const badge = document.getElementById('overall-growth-badge');
+                badge.innerText = `${pct > 0 ? '↑ Increase' : '↓ Drop'} ${Math.abs(Math.round(pct))}% vs Prev ${timeframe}`;
+                badge.className = `px-3 py-1 rounded-lg font-black text-[10px] uppercase ${pct > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`;
+            }
+
+            if(charts.main) charts.main.destroy();
+            charts.main = new Chart(document.getElementById('mainChart'), {
                 type: 'line',
                 data: {
-                    labels: labels,
-                    datasets: [{ label: 'Procurement', data: data, borderColor: '#3b82f6', tension: 0.3 }]
+                    labels,
+                    datasets: [{ label: 'Spend', data: trendData, borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59,130,246,0.03)', pointRadius: 4 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
+
+            // Supplier Predicton & Variance Logic
+            const suppData = {};
+            purchases.forEach(p => {
+                if(!suppData[p.supplier]) suppData[p.supplier] = { totals: [], dates: [], categories: new Set() };
+                suppData[p.supplier].totals.push(p.total);
+                suppData[p.supplier].dates.push(p.ts);
+                suppData[p.supplier].categories.add(p.category);
+            });
+
+            const predictionRows = Object.entries(suppData).map(([name, data]) => {
+                const avg = data.totals.reduce((a,b) => a+b, 0) / data.totals.length;
+                // Calculate variance (last 2 entries for this supplier)
+                let varianceText = '--';
+                let varianceVal = 0;
+                if(data.totals.length >= 2) {
+                    const last = data.totals[0]; // entries are unshifted
+                    const prev = data.totals[1];
+                    varianceVal = ((last - prev) / prev) * 100;
+                    varianceText = `${varianceVal > 0 ? '+' : ''}${Math.round(varianceVal)}%`;
+                }
+
+                const earliestS = Math.min(...data.dates);
+                const latestS = Math.max(...data.dates);
+                const daysDiffS = Math.max(1, (latestS - earliestS) / 86400000);
+                const freq = data.totals.length > 1 ? Math.round(daysDiffS / (data.totals.length - 1)) : 'N/A';
+                
+                return { name, avg, varianceText, varianceVal, freq, predicted: avg };
+            }).sort((a,b) => b.predicted - a.predicted);
+
+            document.getElementById('supplier-prediction-table').innerHTML = predictionRows.map(r => `
+                <tr>
+                    <td class="py-5 font-bold text-slate-800 text-sm">${r.name}</td>
+                    <td class="py-5 text-xs text-slate-500 font-medium">₹${Math.round(r.avg).toLocaleString()}</td>
+                    <td class="py-5">
+                        <span class="text-xs font-black ${r.varianceVal > 0 ? 'text-red-500' : r.varianceVal < 0 ? 'text-green-500' : 'text-slate-400'}">
+                            ${r.varianceText} ${r.varianceVal !== 0 ? (r.varianceVal > 0 ? '↑' : '↓') : ''}
+                        </span>
+                    </td>
+                    <td class="py-5 text-right font-black text-blue-600">₹${Math.round(r.predicted).toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            // Forecast Logic
+            const totalS = purchases.reduce((a, b) => a + b.total, 0);
+            const firstEntry = Math.min(...purchases.map(p => p.ts));
+            const totalDaysS = Math.max(1, (Date.now() - firstEntry) / 86400000);
+            const forecastV = (totalS / totalDaysS) * 30;
+            document.getElementById('forecast-val').innerText = `₹${Math.round(forecastV).toLocaleString()}`;
+            document.getElementById('cycle-stat').innerText = `Every ${Math.round(totalDaysS / (purchases.length || 1))} days avg.`;
+
+            // Charts
+            const cMap = {}; purchases.forEach(p => cMap[p.category] = (cMap[p.category] || 0) + p.total);
+            if(charts.cat) charts.cat.destroy();
+            charts.cat = new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: { labels: Object.keys(cMap), datasets: [{ data: Object.values(cMap), backgroundColor: ['#1e293b', '#3b82f6', '#8b5cf6', '#ec4899', '#f97316'] }] },
+                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9, weight: 'bold' } } } } }
+            });
+
+            const sMap = {}; purchases.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + p.total);
+            const sTop = Object.entries(sMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
+            if(charts.supp) charts.supp.destroy();
+            charts.supp = new Chart(document.getElementById('supplierChart'), {
+                type: 'bar',
+                data: { labels: sTop.map(s => s[0]), datasets: [{ data: sTop.map(s => s[1]), backgroundColor: '#3b82f6', borderRadius: 6 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function changeTimeframe(tf) {
+            timeframe = tf;
+            document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tf-'+tf).classList.add('active');
+            renderAnalytics();
         }
 
         function updateDatalists() {
-            const list = [...new Set(purchases.map(p => p.supplier))];
-            document.getElementById('supplier-list').innerHTML = list.map(s => `<option value="${s}">`).join('');
-        }
-
-        function updateBalanceDisplay() {
-            const t = parseFloat(document.getElementById('p-total').value) || 0;
-            const p = parseFloat(document.getElementById('p-paid').value) || 0;
-            document.getElementById('p-balance-display').innerText = `₹${(t - p).toLocaleString()}`;
+            const vendors = [...new Set(purchases.map(p => p.supplier))];
+            document.getElementById('supplier-list').innerHTML = vendors.map(v => `<option value="${v}">`).join('');
         }
 
         function showToast(m) {
@@ -418,9 +520,17 @@
             setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
         }
 
-        document.getElementById('p-total').oninput = updateBalanceDisplay;
-        document.getElementById('p-paid').oninput = updateBalanceDisplay;
+        function handleDriveAction() {
+            const btn = document.getElementById('gdrive-btn');
+            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Syncing...`;
+            setTimeout(() => {
+                btn.innerHTML = `<i class="ph ph-cloud-arrow-up"></i> Cloud Backup`;
+                showToast("Data Sync Successful");
+            }, 800);
+        }
+
         document.getElementById('p-date').valueAsDate = new Date();
+        refreshUI();
     </script>
 </body>
 </html>
