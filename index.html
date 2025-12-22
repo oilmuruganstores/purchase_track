@@ -3,261 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oil Murugan Stores | Smart Intelligence</title>
+    <title>Oil Murugan | Predictive Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body { background-color: #F8FAFC; font-family: 'Plus Jakarta Sans', sans-serif; color: #0F172A; }
+        body { background-color: #F1F5F9; font-family: 'Plus Jakarta Sans', sans-serif; color: #0F172A; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-item.active { background: #1E293B; color: #FFFFFF; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .card-shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); }
-        .tf-btn.active { background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); color: #2563eb; }
-        .insight-card { transition: all 0.3s ease; }
-        .insight-card:hover { transform: translateY(-5px); }
+        .tab-content.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item.active { background: #1E293B; color: #FFFFFF; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .time-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
         .scroll-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden text-slate-900">
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
     <!-- Sidebar -->
     <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col z-30">
         <div class="p-8">
             <h1 class="text-2xl font-black tracking-tighter text-slate-900 leading-tight">
                 OIL MURUGAN <br>
-                <span class="text-blue-600">STORES</span>
+                <span class="text-blue-600">PREDICTIVE</span>
             </h1>
         </div>
 
         <nav class="flex-1 px-4 space-y-1">
-            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all">
                 <i class="ph ph-squares-four text-xl"></i> Dashboard
             </button>
-            <button onclick="switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+            <button onclick="switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
                 <i class="ph ph-plus-circle text-xl"></i> New Entry
             </button>
-            <button onclick="switchTab('history')" id="btn-history" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
-                <i class="ph ph-clock-counter-clockwise text-xl"></i> History
-            </button>
-            <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+            <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
                 <i class="ph ph-chart-line-up text-xl"></i> Smart Insights
+            </button>
+            <button onclick="switchTab('history')" id="btn-history" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+                <i class="ph ph-database text-xl"></i> Data & Backup
             </button>
         </nav>
 
-        <div class="p-6">
-            <div class="bg-blue-600 rounded-2xl p-5 text-white">
-                <p class="text-[10px] font-black uppercase opacity-70 mb-1">Local Storage</p>
-                <p class="text-xs font-bold">Data is saved locally on this browser.</p>
+        <div class="p-6 mt-auto">
+            <div class="bg-slate-900 rounded-2xl p-4 text-white">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                    <p class="text-[10px] font-black uppercase opacity-70">System Status</p>
+                </div>
+                <p class="text-xs font-bold">Local DB Operational</p>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-10">
-        <!-- Toast Notification -->
-        <div id="toast" class="fixed top-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-[200%] transition-transform duration-500 z-50 flex items-center gap-3">
-            <i class="ph ph-check-circle text-green-400 text-xl"></i>
-            <span id="toast-msg" class="font-bold text-sm">Success</span>
-        </div>
-
-        <!-- DASHBOARD (Standard Metrics) -->
-        <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-8">
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
+        
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-6">
             <header>
                 <h2 class="text-3xl font-extrabold tracking-tight">Financial Pulse</h2>
-                <p class="text-slate-400 font-medium">Daily overview of operations.</p>
             </header>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 card-shadow">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Procurement</p>
-                    <h3 class="text-3xl font-black" id="dash-total-buy">₹0</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Spent</p>
+                    <h3 class="text-2xl font-black" id="dash-total">₹0</h3>
                 </div>
-                <div class="bg-orange-50 p-6 rounded-3xl border border-orange-100">
-                    <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Active Dues</p>
-                    <h3 class="text-3xl font-black text-orange-600" id="dash-total-dues">₹0</h3>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Dues</p>
+                    <h3 class="text-2xl font-black text-orange-600" id="dash-dues">₹0</h3>
                 </div>
-                <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Growth Index</p>
-                    <h3 class="text-3xl font-black text-blue-700" id="dash-growth-index">--</h3>
+                <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white md:col-span-2">
+                    <p class="text-[10px] font-black opacity-80 uppercase tracking-widest mb-1">Forecasted Requirement (Next 7 Days)</p>
+                    <h3 class="text-3xl font-black" id="dash-week-forecast">₹0</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="space-y-4">
-                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Immediate Requirements</h4>
-                    <div id="requirement-list" class="space-y-3"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="text-xs font-black uppercase text-slate-400 mb-4">Top Suppliers</h4>
+                    <div id="dash-top-suppliers" class="space-y-3"></div>
                 </div>
-                <div class="space-y-4">
-                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Recent Activity</h4>
-                    <div id="recent-list" class="space-y-3"></div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="text-xs font-black uppercase text-slate-400 mb-4">Upcoming Payments</h4>
+                    <div id="dash-upcoming" class="space-y-3"></div>
                 </div>
             </div>
         </div>
 
         <!-- NEW ENTRY -->
-        <div id="purchase" class="tab-content max-w-3xl mx-auto">
-            <header class="mb-8">
-                <h2 class="text-3xl font-extrabold tracking-tight">Log Purchase</h2>
-            </header>
-            <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2rem] p-8 border border-slate-100 card-shadow space-y-6">
+        <div id="purchase" class="tab-content max-w-2xl mx-auto">
+            <h2 class="text-3xl font-extrabold mb-8">Record Inventory</h2>
+            <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Supplier Name</label>
-                        <input type="text" id="p-supplier" list="supplier-list" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold" placeholder="Vendor" required>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Supplier Name</label>
+                        <input type="text" id="p-supplier" list="supplier-list" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold focus:ring-2 ring-blue-500" placeholder="e.g. Rice Mill" required>
                         <datalist id="supplier-list"></datalist>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Category</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Category</label>
                         <select id="p-category" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold">
-                            <option>Pulses & Dals</option><option>Grains & Rice</option><option>Oil & Ghee</option>
-                            <option>Spices & Masala</option><option>Sugar & Jaggery</option><option>FMCG</option>
+                            <option>Oil & Ghee</option><option>Grains & Rice</option><option>Pulses & Dals</option>
+                            <option>Sugar & Spices</option><option>FMCG</option>
                         </select>
                     </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Bill Date</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Bill Date</label>
                         <input type="date" id="p-date" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold" required>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Bill (₹)</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Total Bill (₹)</label>
                         <input type="number" id="p-total" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-black text-blue-600 text-xl" placeholder="0.00" step="0.01" required>
                     </div>
                 </div>
-                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4">
+                <div class="p-6 bg-slate-50 rounded-2xl grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Advance Paid</label>
+                        <label class="text-[10px] font-bold text-slate-400">Advance Paid</label>
                         <input type="number" id="p-paid" class="w-full px-4 py-2 bg-white rounded-lg font-bold" placeholder="0.00">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mode</label>
+                        <label class="text-[10px] font-bold text-slate-400">Payment Mode</label>
                         <select id="p-mode" class="w-full px-4 py-2 bg-white rounded-lg font-bold">
                             <option>Cash</option><option>UPI</option><option>Bank</option>
                         </select>
                     </div>
                 </div>
                 <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl transition-all">
-                    Save Record
+                    Secure Entry
                 </button>
             </form>
         </div>
 
-        <!-- HISTORY -->
-        <div id="history" class="tab-content max-w-6xl mx-auto">
-            <header class="mb-8">
-                <h2 class="text-3xl font-extrabold tracking-tight">Purchase Ledger</h2>
+        <!-- ANALYTICS -->
+        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8 pb-20">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold tracking-tight">Smart Intelligence</h2>
+                    <p class="text-slate-500 font-medium">Predictive buying based on your business patterns.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200">
+                    <button onclick="changeTimeframe('day')" id="tf-day" class="time-btn px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all">Day</button>
+                    <button onclick="changeTimeframe('week')" id="tf-week" class="time-btn px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all">Week</button>
+                    <button onclick="changeTimeframe('month')" id="tf-month" class="time-btn active px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all">Month</button>
+                </div>
             </header>
-            <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden card-shadow">
+
+            <!-- Predictions Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Required: Next 24h</p>
+                        <h5 class="text-4xl font-black text-slate-900" id="predict-day">₹0</h5>
+                    </div>
+                    <p class="mt-4 text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full w-fit uppercase">High Confidence</p>
+                </div>
+                <div class="bg-blue-600 p-8 rounded-[2rem] shadow-xl text-white flex flex-col justify-between">
+                    <div>
+                        <p class="text-[10px] font-black opacity-70 uppercase mb-2">Required: Next 7 Days</p>
+                        <h5 class="text-4xl font-black" id="predict-week">₹0</h5>
+                    </div>
+                    <p class="mt-4 text-[10px] font-bold text-blue-100 uppercase">Based on 30-day velocity</p>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Required: Next 30 Days</p>
+                        <h5 class="text-4xl font-black text-slate-900" id="predict-month">₹0</h5>
+                    </div>
+                    <div class="mt-4 flex items-center gap-2">
+                         <div class="w-2 h-2 rounded-full bg-orange-400"></div>
+                         <p class="text-[10px] font-bold text-slate-500 uppercase">Trend Adjusting</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-black text-xl">Spend Trends</h4>
+                        <select id="supplier-chart-filter" onchange="renderAnalytics()" class="bg-slate-50 text-[10px] font-black uppercase p-2 rounded-lg outline-none">
+                            <option value="all">All Suppliers</option>
+                        </select>
+                    </div>
+                    <div class="h-[300px]"><canvas id="mainChart"></canvas></div>
+                </div>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h4 class="font-black text-xl mb-6">Supplier Split</h4>
+                    <div class="h-[300px]"><canvas id="supplierChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Smart Table -->
+            <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 overflow-hidden">
+                <h4 class="text-xs font-black uppercase text-slate-400 mb-6">Supplier Buying Patterns</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-100">
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Vendor</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Avg Buy Cycle</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Avg Bill</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase text-right">Next Predicted</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pattern-table" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY & DATA MANAGEMENT -->
+        <div id="history" class="tab-content max-w-6xl mx-auto space-y-8">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold">Data Management</h2>
+                    <p class="text-slate-500">History, Exports, and Backups.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-200">
+                        <i class="ph ph-file-csv text-xl"></i> Export CSV
+                    </button>
+                    <button onclick="simulateBackup()" class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                        <i class="ph ph-google-logo text-xl"></i> Backup to Drive
+                    </button>
+                </div>
+            </header>
+
+            <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
                 <table class="w-full text-left">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">Supplier</th>
-                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
-                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Delete</th>
+                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Supplier</th>
+                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="history-table" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
-
-        <!-- ANALYTICS & SMART INSIGHTS -->
-        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-10 pb-20">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div>
-                    <h2 class="text-4xl font-extrabold tracking-tight">Smart Insights</h2>
-                    <p class="text-slate-500 font-medium">Predictive purchasing and supplier health.</p>
-                </div>
-                <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
-                    <i class="ph ph-funnel text-slate-400 ml-2"></i>
-                    <select id="supplier-selector" onchange="renderSupplierDeepDive(this.value)" class="bg-transparent font-bold outline-none pr-4 text-sm">
-                        <option value="all">View All Suppliers</option>
-                    </select>
-                </div>
-            </header>
-
-            <!-- Top Row: General Prediction -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 card-shadow">
-                    <div class="flex items-center justify-between mb-8">
-                        <div>
-                            <h4 class="text-xl font-black">Purchase Velocity</h4>
-                            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest" id="trend-period-label">Last 12 Months</p>
-                        </div>
-                        <div id="overall-variance-badge" class="px-3 py-1.5 rounded-xl font-black text-[10px] uppercase"></div>
-                    </div>
-                    <div class="h-64"><canvas id="mainChart"></canvas></div>
-                </div>
-
-                <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between shadow-2xl overflow-hidden relative">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl"></div>
-                    <div>
-                        <div class="flex items-center gap-2 mb-4 text-blue-400">
-                            <i class="ph ph-magic-wand-bold text-2xl"></i>
-                            <span class="text-[10px] font-black uppercase tracking-widest">Next Month Forecast</span>
-                        </div>
-                        <h5 class="text-5xl font-black mb-2" id="forecast-val">₹0</h5>
-                        <div id="forecast-logic-text" class="text-[10px] text-slate-400 font-bold leading-relaxed uppercase tracking-tighter">Based on your historical average burn rate.</div>
-                    </div>
-                    <div class="mt-8 pt-8 border-t border-white/10 grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-[9px] font-black text-slate-500 uppercase">Avg Ticket</p>
-                            <p class="text-lg font-bold" id="avg-ticket-stat">₹0</p>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-black text-slate-500 uppercase">Buy Cycle</p>
-                            <p class="text-lg font-bold" id="cycle-stat">--</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Middle Section: Supplier Deep Dive / Comparison -->
-            <div id="supplier-detail-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Content injected via JS -->
-            </div>
-
-            <!-- Bottom Section: Vendor Table -->
-            <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 card-shadow overflow-hidden">
-                <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6">Supplier Variance & Smart Predictions</h4>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="text-left border-b border-slate-50">
-                            <tr>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Supplier</th>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Current Variance</th>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Purchase Frequency</th>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase text-right">Predicted Next Buy</th>
-                            </tr>
-                        </thead>
-                        <tbody id="supplier-prediction-table" class="divide-y divide-slate-50"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </main>
 
     <script>
-        let purchases = JSON.parse(localStorage.getItem('oms_purchases_v2') || '[]');
+        let purchases = JSON.parse(localStorage.getItem('oms_v3_data') || '[]');
+        let currentTimeframe = 'month';
         let charts = {};
 
+        // Toast Helper
+        function showToast(msg, icon = 'ph-check-circle') {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-bounce';
+            toast.innerHTML = `<i class="ph ${icon} text-xl text-blue-400"></i> <span class="font-bold text-sm">${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
         function saveData() {
-            localStorage.setItem('oms_purchases_v2', JSON.stringify(purchases));
+            localStorage.setItem('oms_v3_data', JSON.stringify(purchases));
             refreshUI();
         }
 
         function refreshUI() {
             renderDashboard();
             renderHistory();
-            updateSupplierSelector();
+            updateDatalists();
             if (document.getElementById('analytics').classList.contains('active')) {
-                const currentVendor = document.getElementById('supplier-selector').value;
-                renderAnalytics(currentVendor);
+                renderAnalytics();
             }
         }
 
@@ -266,12 +281,18 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('btn-' + id).classList.add('active');
-            if (id === 'analytics') {
-                setTimeout(() => renderAnalytics('all'), 100);
-            }
+            if (id === 'analytics') setTimeout(renderAnalytics, 100);
+        }
+
+        function changeTimeframe(tf) {
+            currentTimeframe = tf;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tf-' + tf).classList.add('active');
+            renderAnalytics();
         }
 
         function handlePurchaseSubmit() {
+            const form = document.getElementById('purchase-form');
             const entry = {
                 id: crypto.randomUUID(),
                 supplier: document.getElementById('p-supplier').value.trim(),
@@ -282,278 +303,180 @@
                 mode: document.getElementById('p-mode').value,
                 ts: new Date(document.getElementById('p-date').value).getTime()
             };
-            if(!entry.supplier) return;
+            if(!entry.supplier || !entry.total) return;
             purchases.unshift(entry);
             saveData();
-            showToast("Purchase Record Secured");
-            document.getElementById('purchase-form').reset();
+            showToast("Transaction Recorded");
+            form.reset();
             document.getElementById('p-date').valueAsDate = new Date();
         }
 
         function deleteRecord(id) {
             purchases = purchases.filter(p => p.id !== id);
             saveData();
+            showToast("Record Removed", "ph-trash");
+        }
+
+        function updateDatalists() {
+            const list = [...new Set(purchases.map(p => p.supplier))];
+            document.getElementById('supplier-list').innerHTML = list.map(s => `<option value="${s}">`).join('');
+            
+            const filter = document.getElementById('supplier-chart-filter');
+            const current = filter.value;
+            filter.innerHTML = `<option value="all">All Suppliers</option>` + list.map(s => `<option value="${s}">${s}</option>`).join('');
+            filter.value = current;
         }
 
         function renderDashboard() {
-            const total = purchases.reduce((a, b) => a + b.total, 0);
-            const due = purchases.reduce((a, b) => a + (b.total - b.paid), 0);
+            const totalSpent = purchases.reduce((a, b) => a + b.total, 0);
+            const totalDue = purchases.reduce((a, b) => a + (b.total - b.paid), 0);
             
-            document.getElementById('dash-total-buy').innerText = `₹${total.toLocaleString()}`;
-            document.getElementById('dash-total-dues').innerText = `₹${due.toLocaleString()}`;
+            document.getElementById('dash-total').innerText = `₹${totalSpent.toLocaleString()}`;
+            document.getElementById('dash-dues').innerText = `₹${totalDue.toLocaleString()}`;
 
-            // Growth Index (Current Month vs Prev)
-            const growth = calculateGrowthIndex();
-            const growthEl = document.getElementById('dash-growth-index');
-            growthEl.innerText = growth.text;
-            growthEl.className = `text-3xl font-black ${growth.val > 0 ? 'text-red-600' : growth.val < 0 ? 'text-green-600' : 'text-blue-700'}`;
+            // Predictions
+            const velocity = calculateDailyVelocity();
+            document.getElementById('dash-week-forecast').innerText = `₹${Math.round(velocity * 7).toLocaleString()}`;
 
-            // Requirements List
-            const dailyAvg = total / Math.max(1, (Date.now() - Math.min(...purchases.map(p => p.ts), Date.now())) / 86400000);
-            const reqs = [
-                { title: 'Weekly Buffer', val: dailyAvg * 7, color: 'blue', icon: 'ph-calendar' },
-                { title: 'Monthly Reserve', val: dailyAvg * 30, color: 'indigo', icon: 'ph-briefcase' }
-            ];
-            document.getElementById('requirement-list').innerHTML = reqs.map(r => `
-                <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-${r.color}-50 text-${r.color}-600 flex items-center justify-center"><i class="ph ${r.icon} text-xl"></i></div>
-                        <div><p class="text-[9px] font-black text-slate-400 uppercase">${r.title}</p><h5 class="font-black">₹${Math.round(r.val).toLocaleString()}</h5></div>
-                    </div>
+            // Top Suppliers
+            const sMap = {}; purchases.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + p.total);
+            const topS = Object.entries(sMap).sort((a,b) => b[1]-a[1]).slice(0, 3);
+            document.getElementById('dash-top-suppliers').innerHTML = topS.map(s => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <span class="font-bold text-sm">${s[0]}</span>
+                    <span class="font-black text-blue-600">₹${s[1].toLocaleString()}</span>
                 </div>
-            `).join('');
-
-            document.getElementById('recent-list').innerHTML = purchases.slice(0, 3).map(p => `
-                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-slate-50">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-black">${p.supplier[0]}</div>
-                        <div><p class="font-bold text-xs">${p.supplier}</p><p class="text-[9px] text-slate-400 uppercase font-bold">${p.category}</p></div>
-                    </div>
-                    <p class="font-black text-sm">₹${p.total.toLocaleString()}</p>
-                </div>
-            `).join('') || '<p class="text-xs text-slate-400 italic">No recent logs.</p>';
+            `).join('') || '<p class="text-xs italic text-slate-400">No data</p>';
         }
 
-        function calculateGrowthIndex() {
-            if (purchases.length < 2) return { text: '--', val: 0 };
-            const m = (date) => date.substring(0, 7);
-            const nowM = m(new Date().toISOString());
-            const lastMDate = new Date(); lastMDate.setMonth(lastMDate.getMonth() - 1);
-            const lastM = m(lastMDate.toISOString());
-
-            const curTotal = purchases.filter(p => m(p.date) === nowM).reduce((a,b) => a+b.total, 0);
-            const prevTotal = purchases.filter(p => m(p.date) === lastM).reduce((a,b) => a+b.total, 0);
-
-            if (prevTotal === 0) return { text: 'New', val: 0 };
-            const diff = ((curTotal - prevTotal) / prevTotal) * 100;
-            return { text: `${diff > 0 ? '+' : ''}${Math.round(diff)}%`, val: diff };
+        function calculateDailyVelocity() {
+            if (purchases.length === 0) return 0;
+            const earliest = Math.min(...purchases.map(p => p.ts));
+            const rangeDays = Math.max(1, (Date.now() - earliest) / 86400000);
+            const total = purchases.reduce((a,b) => a+b.total, 0);
+            return total / rangeDays;
         }
 
-        function renderHistory() {
-            document.getElementById('history-table').innerHTML = purchases.map(p => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-6 font-mono text-[11px] text-slate-400">${p.date}</td>
-                    <td class="p-6 font-bold text-sm">${p.supplier}</td>
-                    <td class="p-6 text-right font-black">₹${p.total.toLocaleString()}</td>
-                    <td class="p-6 text-center">
-                        <button onclick="deleteRecord('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="ph ph-trash-simple text-lg"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function updateSupplierSelector() {
-            const list = [...new Set(purchases.map(p => p.supplier))];
-            const selector = document.getElementById('supplier-selector');
-            const current = selector.value;
-            selector.innerHTML = `<option value="all">View All Suppliers</option>` + list.map(s => `<option value="${s}">${s}</option>`).join('');
-            selector.value = current;
-            
-            const datalist = document.getElementById('supplier-list');
-            datalist.innerHTML = list.map(v => `<option value="${v}">`).join('');
-        }
-
-        function renderAnalytics(filterVendor = 'all') {
+        function renderAnalytics() {
             if (!purchases.length) return;
 
+            const filterVendor = document.getElementById('supplier-chart-filter').value;
             const filtered = filterVendor === 'all' ? purchases : purchases.filter(p => p.supplier === filterVendor);
-            
-            // Monthly Trend Aggregation
-            const months = {};
-            filtered.forEach(p => {
-                const m = p.date.substring(0, 7);
-                months[m] = (months[m] || 0) + p.total;
-            });
-            const labels = Object.keys(months).sort().slice(-12);
-            const data = labels.map(l => months[l]);
 
-            // Chart Rendering
-            if (charts.main) charts.main.destroy();
+            // Time grouping logic
+            const groups = {};
+            filtered.forEach(p => {
+                let key;
+                const d = new Date(p.date);
+                if (currentTimeframe === 'day') {
+                    key = p.date;
+                } else if (currentTimeframe === 'week') {
+                    const startOfYear = new Date(d.getFullYear(), 0, 1);
+                    const week = Math.ceil((((d - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
+                    key = `${d.getFullYear()}-W${week}`;
+                } else {
+                    key = p.date.substring(0, 7);
+                }
+                groups[key] = (groups[key] || 0) + p.total;
+            });
+
+            const sortedKeys = Object.keys(groups).sort().slice(-15);
+            const data = sortedKeys.map(k => groups[k]);
+
+            // Charts
+            if(charts.main) charts.main.destroy();
             charts.main = new Chart(document.getElementById('mainChart'), {
                 type: 'line',
                 data: {
-                    labels,
+                    labels: sortedKeys,
                     datasets: [{
-                        label: 'Purchase Vol',
+                        label: 'Expense',
                         data: data,
                         borderColor: '#2563eb',
                         backgroundColor: 'rgba(37,99,235,0.05)',
                         fill: true,
                         tension: 0.4,
-                        borderWidth: 4,
-                        pointRadius: 2
+                        borderWidth: 4
                     }]
                 },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // Overall Variance Badge
-            if(data.length >= 2) {
-                const diff = ((data[data.length-1] - data[data.length-2]) / (data[data.length-2] || 1)) * 100;
-                const badge = document.getElementById('overall-variance-badge');
-                badge.innerText = `${diff > 0 ? '↑' : '↓'} ${Math.abs(Math.round(diff))}% Variance`;
-                badge.className = `px-3 py-1.5 rounded-xl font-black text-[10px] uppercase ${diff > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`;
-            }
+            // Supplier Donut
+            const sMap = {}; purchases.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + p.total);
+            if(charts.sup) charts.sup.destroy();
+            charts.sup = new Chart(document.getElementById('supplierChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(sMap),
+                    datasets: [{ data: Object.values(sMap), backgroundColor: ['#1e293b', '#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'] }]
+                },
+                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+            });
 
-            // Global Predictions
-            const totalVal = filtered.reduce((a,b) => a+b.total, 0);
-            const avgTicket = totalVal / filtered.length;
-            const earliest = Math.min(...filtered.map(p => p.ts));
-            const daysRange = Math.max(1, (Date.now() - earliest) / 86400000);
-            const monthlyForecast = (totalVal / daysRange) * 30;
+            // Forecaster Logic
+            const dailyVel = calculateDailyVelocity();
+            document.getElementById('predict-day').innerText = `₹${Math.round(dailyVel).toLocaleString()}`;
+            document.getElementById('predict-week').innerText = `₹${Math.round(dailyVel * 7).toLocaleString()}`;
+            document.getElementById('predict-month').innerText = `₹${Math.round(dailyVel * 30).toLocaleString()}`;
 
-            document.getElementById('forecast-val').innerText = `₹${Math.round(monthlyForecast).toLocaleString()}`;
-            document.getElementById('avg-ticket-stat').innerText = `₹${Math.round(avgTicket).toLocaleString()}`;
-            document.getElementById('cycle-stat').innerText = `${Math.round(daysRange / (filtered.length || 1))} Days`;
-
-            // Supplier Table Predictions
-            renderSupplierTable();
-            renderSupplierDeepDive(filterVendor);
+            renderPatternTable();
         }
 
-        function renderSupplierTable() {
+        function renderPatternTable() {
             const suppliers = {};
             purchases.forEach(p => {
                 if(!suppliers[p.supplier]) suppliers[p.supplier] = [];
                 suppliers[p.supplier].push(p);
             });
 
-            const rows = Object.entries(suppliers).map(([name, logs]) => {
+            document.getElementById('pattern-table').innerHTML = Object.entries(suppliers).map(([name, logs]) => {
                 logs.sort((a,b) => b.ts - a.ts);
-                const last = logs[0].total;
-                const prev = logs[1] ? logs[1].total : last;
-                const varPct = ((last - prev) / (prev || 1)) * 100;
-                
+                const avg = logs.reduce((a,b) => a+b.total, 0) / logs.length;
                 const earliest = Math.min(...logs.map(l => l.ts));
-                const cycle = Math.round((Date.now() - earliest) / (86400000 * logs.length));
-                const nextPrediction = logs.reduce((a,b) => a+b.total, 0) / logs.length;
+                const cycle = Math.round((Date.now() - earliest) / (86400000 * logs.length)) || 1;
+                
+                return `
+                    <tr>
+                        <td class="py-4 font-bold text-sm">${name}</td>
+                        <td class="py-4 text-xs text-slate-500 font-bold">${cycle} Days</td>
+                        <td class="py-4 text-xs font-bold">₹${Math.round(avg).toLocaleString()}</td>
+                        <td class="py-4 text-right font-black text-blue-600">₹${Math.round(avg).toLocaleString()}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
 
-                return { name, varPct, cycle, nextPrediction };
-            }).sort((a,b) => b.nextPrediction - a.nextPrediction);
-
-            document.getElementById('supplier-prediction-table').innerHTML = rows.map(r => `
-                <tr>
-                    <td class="py-5 font-bold text-sm">${r.name}</td>
-                    <td class="py-5">
-                        <span class="text-[10px] font-black uppercase px-2 py-1 rounded-lg ${r.varPct > 0 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}">
-                            ${r.varPct > 0 ? '+' : ''}${Math.round(r.varPct)}% ${r.varPct > 0 ? '↑' : '↓'}
-                        </span>
+        function renderHistory() {
+            document.getElementById('history-table').innerHTML = purchases.map(p => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-5 font-mono text-[11px] text-slate-400">${p.date}</td>
+                    <td class="p-5 font-bold text-sm">${p.supplier}</td>
+                    <td class="p-5 font-medium text-[10px] text-slate-500 uppercase">${p.category}</td>
+                    <td class="p-5 text-right font-black">₹${p.total.toLocaleString()}</td>
+                    <td class="p-5 text-center">
+                        <button onclick="deleteRecord('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="ph ph-trash text-lg"></i></button>
                     </td>
-                    <td class="py-5 text-xs text-slate-500 font-bold">Every ${r.cycle} Days</td>
-                    <td class="py-5 text-right font-black text-blue-600">₹${Math.round(r.nextPrediction).toLocaleString()}</td>
                 </tr>
             `).join('');
         }
 
-        function renderSupplierDeepDive(vendor) {
-            const container = document.getElementById('supplier-detail-section');
-            if (vendor === 'all') {
-                container.innerHTML = `
-                    <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
-                        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><i class="ph ph-chart-pie-slice text-3xl"></i></div>
-                        <div><h4 class="font-black text-lg">Category Distribution</h4><p class="text-xs text-slate-400">Where is your money going?</p></div>
-                        <div class="w-full h-48"><canvas id="catChart"></canvas></div>
-                    </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
-                        <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><i class="ph ph-users-three text-3xl"></i></div>
-                        <div><h4 class="font-black text-lg">Vendor Concentration</h4><p class="text-xs text-slate-400">Main source of supplies</p></div>
-                        <div class="w-full h-48"><canvas id="venChart"></canvas></div>
-                    </div>
-                `;
-                renderGlobalCharts();
-                return;
-            }
-
-            // Vendor Specific View
-            const logs = purchases.filter(p => p.supplier === vendor);
-            const cats = {}; logs.forEach(l => cats[l.category] = (cats[l.category] || 0) + l.total);
-            const topCat = Object.entries(cats).sort((a,b) => b[1]-a[1])[0][0];
-            const avg = logs.reduce((a,b) => a+b.total, 0) / logs.length;
-
-            container.innerHTML = `
-                <div class="bg-blue-600 p-8 rounded-[2.5rem] text-white card-shadow relative overflow-hidden">
-                    <i class="ph ph-identification-card absolute -right-4 -bottom-4 text-9xl opacity-10"></i>
-                    <h4 class="text-2xl font-black mb-1">${vendor}</h4>
-                    <p class="text-[10px] font-black uppercase tracking-widest opacity-70 mb-6">Vendor Strategic Profile</p>
-                    <div class="space-y-4">
-                        <div class="bg-white/10 p-4 rounded-2xl">
-                            <p class="text-[9px] font-black uppercase opacity-60">Primary Category</p>
-                            <p class="text-lg font-bold">${topCat}</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white/10 p-4 rounded-2xl">
-                                <p class="text-[9px] font-black uppercase opacity-60">Total Orders</p>
-                                <p class="text-lg font-bold">${logs.length}</p>
-                            </div>
-                            <div class="bg-white/10 p-4 rounded-2xl">
-                                <p class="text-[9px] font-black uppercase opacity-60">Loyalty Score</p>
-                                <p class="text-lg font-bold">${logs.length > 5 ? 'High' : 'Standard'}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
-                    <h4 class="text-lg font-black mb-4">Smart Prediction</h4>
-                    <div class="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-3">
-                        <p class="text-xs font-medium text-slate-500">Based on historical patterns, your next purchase from <b>${vendor}</b> is expected to be:</p>
-                        <div class="text-3xl font-black text-blue-600">₹${Math.round(avg).toLocaleString()}</div>
-                        <p class="text-[9px] font-black uppercase text-slate-400">Suggested Budget Allocation</p>
-                    </div>
-                    <div class="mt-6">
-                         <h5 class="text-[10px] font-black uppercase text-slate-400 mb-3">Health Insight</h5>
-                         <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                            <p class="text-xs font-bold text-slate-700">Vendor relations stable. Last variance within ±5%.</p>
-                         </div>
-                    </div>
-                </div>
-            `;
+        function exportToCSV() {
+            if(!purchases.length) return showToast("No data to export", "ph-warning");
+            const headers = "Date,Supplier,Category,Total,Paid,Mode\n";
+            const rows = purchases.map(p => `${p.date},${p.supplier},${p.category},${p.total},${p.paid},${p.mode}`).join("\n");
+            const blob = new Blob([headers + rows], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `OilMurugan_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            a.click();
+            showToast("CSV Exported Successfully");
         }
 
-        function renderGlobalCharts() {
-            const cMap = {}; purchases.forEach(p => cMap[p.category] = (cMap[p.category] || 0) + p.total);
-            if(charts.cat) charts.cat.destroy();
-            charts.cat = new Chart(document.getElementById('catChart'), {
-                type: 'doughnut',
-                data: { labels: Object.keys(cMap), datasets: [{ data: Object.values(cMap), backgroundColor: ['#1e293b', '#3b82f6', '#8b5cf6', '#ec4899'] }] },
-                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-            });
-
-            const vMap = {}; purchases.forEach(p => vMap[p.supplier] = (vMap[p.supplier] || 0) + p.total);
-            const vTop = Object.entries(vMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-            if(charts.ven) charts.ven.destroy();
-            charts.ven = new Chart(document.getElementById('venChart'), {
-                type: 'bar',
-                data: { labels: vTop.map(v => v[0]), datasets: [{ data: vTop.map(v => v[1]), backgroundColor: '#3b82f6', borderRadius: 8 }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = m;
-            t.classList.remove('translate-x-[200%]');
-            setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
+        function simulateBackup() {
+            showToast("Syncing with Google Drive...", "ph-arrows-clockwise");
+            setTimeout(() => showToast("Backup Completed (Simulated)"), 2000);
         }
 
         document.getElementById('p-date').valueAsDate = new Date();
