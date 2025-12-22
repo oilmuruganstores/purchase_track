@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +38,7 @@
         onAuthStateChanged(auth, (user) => {
             window.currentUser = user;
             if (user) {
-                document.getElementById('user-id').innerText = user.uid.substring(0, 8) + '...';
+                document.getElementById('user-id').innerText = user.uid.substring(0, 12) + '...';
                 startListening(user.uid);
             }
         });
@@ -63,8 +62,6 @@
         .nav-item.active { background: #111827; color: #FFFFFF; }
         .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
         .insight-pill { background: rgba(59, 130, 246, 0.1); color: #2563eb; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 800; }
-        .stat-up { color: #ef4444; } /* In groceries, increase is usually bad for buyer */
-        .stat-down { color: #10b981; }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
@@ -100,9 +97,9 @@
             <div class="bg-gray-900 rounded-2xl p-4 text-white">
                 <div class="flex items-center gap-2 mb-1">
                     <div class="w-2 h-2 rounded-full bg-green-400"></div>
-                    <span class="text-[10px] font-black uppercase opacity-60">Connected</span>
+                    <span class="text-[10px] font-black uppercase opacity-60">Session Active</span>
                 </div>
-                <span id="user-id" class="text-[10px] font-mono block truncate">Identifying...</span>
+                <span id="user-id" class="text-[10px] font-mono block truncate">Syncing...</span>
             </div>
         </div>
     </aside>
@@ -295,35 +292,6 @@
                         </div>
                         <div class="h-80"><canvas id="trendChart"></canvas></div>
                     </div>
-
-                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 card-shadow">
-                        <h5 class="text-sm font-black uppercase text-gray-400 tracking-widest mb-6">Supplier Analytics</h5>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="border-b border-gray-100">
-                                    <tr>
-                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px]">Vendor</th>
-                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px] text-right">Volume</th>
-                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px] text-right">Growth %</th>
-                                        <th class="pb-4 font-black text-gray-400 uppercase text-[10px] text-right">Risk</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="supplier-table" class="divide-y divide-gray-50"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] card-shadow space-y-6">
-                        <h5 class="text-xs font-black uppercase tracking-widest text-blue-400">Smart Insights</h5>
-                        <div id="ai-insights" class="space-y-6"></div>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                        <h5 class="text-xs font-black uppercase text-gray-400 mb-4">Category Spend</h5>
-                        <div class="h-48"><canvas id="catChart"></canvas></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -334,7 +302,6 @@
         let charts = {};
         let currentTF = 'month';
 
-        // Global function called from the Module when data changes
         window.updateData = (data) => {
             purchases = data.sort((a,b) => new Date(b.date) - new Date(a.date));
             renderDashboard();
@@ -352,16 +319,30 @@
         }
 
         async function handlePurchaseSubmit() {
-            const ctx = window.firebaseCtx;
+            const btn = document.getElementById('save-btn');
+            const originalHtml = btn.innerHTML;
+            
+            // UI Feedback
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Preparing session...`;
+
+            // Wait for user if not yet initialized
+            let retryCount = 0;
+            while (!window.currentUser && retryCount < 10) {
+                await new Promise(r => setTimeout(r, 500));
+                retryCount++;
+            }
+
             if (!window.currentUser) {
-                showToast("Signing in...");
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                showToast("Connection timeout. Refresh page.");
                 return;
             }
 
-            const btn = document.getElementById('save-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Saving...`;
+            btn.innerHTML = `<i class="ph ph-cloud-arrow-up animate-pulse"></i> Saving record...`;
 
+            const ctx = window.firebaseCtx;
             const payload = {
                 supplier: document.getElementById('p-supplier').value,
                 category: document.getElementById('p-category').value,
@@ -373,17 +354,20 @@
             };
 
             try {
-                await ctx.addDoc(ctx.collection(ctx.db, 'artifacts', ctx.appId, 'users', window.currentUser.uid, 'grocery_purchases'), payload);
-                showToast("Record Saved Permanently");
+                // Ensure absolute path following Rule 1
+                const userCol = ctx.collection(ctx.db, 'artifacts', ctx.appId, 'users', window.currentUser.uid, 'grocery_purchases');
+                await ctx.addDoc(userCol, payload);
+                
+                showToast("Entry Saved Permanently");
                 document.getElementById('purchase-form').reset();
                 document.getElementById('p-date').valueAsDate = new Date();
                 updateBalanceDisplay();
             } catch (err) {
-                console.error(err);
-                showToast("Error: Check connection");
+                console.error("Save failed:", err);
+                showToast("Database error. Please try again.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="ph-fill ph-floppy-disk"></i> Save Permanent Record`;
+                btn.innerHTML = originalHtml;
             }
         }
 
@@ -457,7 +441,7 @@
         }
 
         async function deleteRecord(id) {
-            if(!confirm("Delete this bill?")) return;
+            if(!confirm("Delete this bill from archives?")) return;
             const ctx = window.firebaseCtx;
             await ctx.deleteDoc(ctx.doc(ctx.db, 'artifacts', ctx.appId, 'users', window.currentUser.uid, 'grocery_purchases', id));
             showToast("Record Removed");
@@ -465,39 +449,12 @@
 
         function renderAnalytics() {
             if (!purchases.length) return;
-
             const timeline = {};
-            const cats = {};
-            const suppliers = {};
-
             purchases.forEach(p => {
                 const key = currentTF === 'month' ? p.date.substring(0, 7) : p.date.substring(0, 4);
                 timeline[key] = (timeline[key] || 0) + p.total;
-                cats[p.category] = (cats[p.category] || 0) + p.total;
-                
-                if (!suppliers[p.supplier]) suppliers[p.supplier] = { total: 0, bills: 0, history: [] };
-                suppliers[p.supplier].total += p.total;
-                suppliers[p.supplier].bills += 1;
-                suppliers[p.supplier].history.push({ date: p.date, val: p.total });
             });
-
             const sortedTimeline = Object.keys(timeline).sort();
-            const latestVal = timeline[sortedTimeline[sortedTimeline.length-1]] || 0;
-            const prevVal = timeline[sortedTimeline[sortedTimeline.length-2]] || 0;
-            const growth = prevVal === 0 ? 0 : ((latestVal - prevVal) / prevVal) * 100;
-
-            document.getElementById('analytics-period-spend').innerText = `₹${latestVal.toLocaleString()}`;
-            document.getElementById('period-trend').innerHTML = `
-                <span class="${growth > 0 ? 'text-red-500' : 'text-green-500'}">
-                    ${growth > 0 ? '↑' : '↓'} ${Math.abs(growth).toFixed(1)}%
-                </span> vs Prev ${currentTF.toUpperCase()}
-            `;
-            document.getElementById('analytics-avg-tx').innerText = `₹${(latestVal / (purchases.filter(p => p.date.includes(sortedTimeline[sortedTimeline.length-1])).length || 1)).toLocaleString()}`;
-            
-            const volatileCat = Object.entries(cats).sort((a,b) => b[1]-a[1])[0];
-            document.getElementById('analytics-volatile').innerText = volatileCat ? volatileCat[0] : '--';
-
-            // Trends Chart
             const ctxTrend = document.getElementById('trendChart').getContext('2d');
             if (charts.trend) charts.trend.destroy();
             charts.trend = new Chart(ctxTrend, {
@@ -515,69 +472,6 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-
-            // Cat Chart
-            const ctxCat = document.getElementById('catChart').getContext('2d');
-            if (charts.cat) charts.cat.destroy();
-            charts.cat = new Chart(ctxCat, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(cats),
-                    datasets: [{ data: Object.values(cats), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' }
-            });
-
-            // Supplier Intel Table
-            const sTable = document.getElementById('supplier-table');
-            sTable.innerHTML = Object.entries(suppliers).sort((a,b) => b[1].total - a[1].total).map(([name, data]) => {
-                const sGrowth = data.bills > 1 ? "Check" : "New";
-                return `
-                    <tr class="group">
-                        <td class="py-4 font-bold text-gray-800">${name}</td>
-                        <td class="py-4 text-right font-medium text-gray-500">${data.bills} Bills</td>
-                        <td class="py-4 text-right font-black text-gray-900">₹${data.total.toLocaleString()}</td>
-                        <td class="py-4 text-right">
-                            <span class="px-2 py-1 rounded text-[9px] font-black ${data.total > 50000 ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'}">
-                                ${data.total > 50000 ? 'HIGH EXPOSURE' : 'STABLE'}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            renderInsights(growth, latestVal, cats);
-        }
-
-        function renderInsights(growth, spend, cats) {
-            const feed = document.getElementById('ai-insights');
-            let items = [];
-
-            if (growth > 15) items.push({ t: "Spending Alert", d: `Your procurement volume increased by ${growth.toFixed(1)}%. Check if inventory turnover matches this spike.`, i: "ph-warning-circle", c: "text-red-400" });
-            if (growth < -5) items.push({ t: "Lean Purchasing", d: `Spending decreased. Ensure your top-selling items are sufficiently stocked.`, i: "ph-trend-down", c: "text-green-400" });
-            
-            const mainCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
-            if (mainCat) items.push({ t: "Bulk Target", d: `${mainCat[0]} accounts for the largest portion of your capital. Negotiate bulk rates for this category.`, i: "ph-package", c: "text-blue-400" });
-
-            const due = purchases.reduce((a, b) => a + (b.total - b.paid), 0);
-            if (due > 0) items.push({ t: "Capital Liquidity", d: `You have ₹${due.toLocaleString()} in unpaid balances. Clearing these may unlock better vendor discounts.`, i: "ph-hand-coins", c: "text-yellow-400" });
-
-            feed.innerHTML = items.map(x => `
-                <div class="flex gap-4">
-                    <i class="ph-fill ${x.i} ${x.c} text-2xl"></i>
-                    <div>
-                        <h6 class="text-xs font-black uppercase text-white">${x.t}</h6>
-                        <p class="text-[11px] text-gray-400 leading-relaxed mt-1">${x.d}</p>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function changeTimeframe(tf) {
-            currentTF = tf;
-            document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('bg-white', 'shadow-sm'));
-            document.getElementById('tf-' + tf).classList.add('bg-white', 'shadow-sm');
-            renderAnalytics();
         }
 
         function updateDatalists() {
