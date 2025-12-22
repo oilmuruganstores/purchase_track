@@ -2,99 +2,78 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Oil Murugan Stores | Purchase System</title>
-
-<!-- Charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Oil Murugan Stores | Ledger</title>
 
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;
- font-family:Poppins,Segoe UI,sans-serif;
- background:
-  linear-gradient(135deg,rgba(253,230,138,.9),rgba(253,186,116,.9)),
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='400'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle' fill='rgba(0,0,0,0.05)' font-size='90' font-family='Arial Black'%3EOIL MURUGAN STORES%3C/text%3E%3C/svg%3E");
- background-repeat:repeat;
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  background:linear-gradient(180deg,#f5f7fa,#e4e8ee);
+  color:#111;
 }
-.app{max-width:1500px;margin:auto;padding:24px}
+.app{max-width:1400px;margin:auto;padding:28px}
 
 /* HEADER */
-.header{display:flex;justify-content:space-between;align-items:center}
-.header h1{margin:0;color:#713f12}
-.header span{font-weight:700;color:#854d0e}
+.header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:24px
+}
+.header h1{margin:0;font-weight:700}
+.header span{color:#666}
 
 /* TABS */
-.tabs{display:flex;gap:12px;margin:20px 0}
+.tabs{display:flex;gap:10px;margin-bottom:20px}
 .tab{
- padding:12px 22px;border-radius:999px;
- background:#fde68a;font-weight:800;cursor:pointer
+  padding:10px 18px;border-radius:999px;
+  background:#fff;border:1px solid #ddd;
+  cursor:pointer;font-weight:600
 }
-.tab.active{background:#ca8a04;color:#fff}
+.tab.active{
+  background:#111;color:#fff
+}
 
 /* PANELS */
 .panel{display:none}
 .panel.active{display:block}
 
-/* DATE BAR */
-.date-bar{
- background:#fff7ed;border:2px solid #f59e0b;
- border-radius:18px;padding:14px;display:flex;gap:16px;align-items:center
-}
-
-/* DASHBOARD */
-.dashboard{
- display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
- gap:16px;margin:20px 0
-}
+/* CARDS */
 .card{
- background:#fff;border-radius:20px;padding:20px;
- box-shadow:0 10px 25px rgba(0,0,0,.18)
+  background:#fff;border-radius:18px;padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  margin-bottom:20px
 }
-.card p{margin:0;font-weight:700;color:#92400e}
-.card h2{margin-top:10px}
 
-/* ENTRY */
-.entry-box{
- background:#fffbeb;border-radius:20px;padding:20px;margin-bottom:20px
+/* FORM */
+.form{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px
 }
-.form-grid{
- display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
- gap:14px
-}
-input,button{
- padding:14px;border-radius:14px;border:2px solid #fde68a
+input,select,button{
+  padding:12px 14px;border-radius:12px;border:1px solid #ddd;
+  font-size:14px
 }
 button{
- background:linear-gradient(135deg,#22c55e,#16a34a);
- color:#fff;font-weight:900;border:none;cursor:pointer
+  background:#111;color:#fff;font-weight:700;border:none;cursor:pointer
 }
 
 /* TABLE */
-.table-box{
- background:#fff;border-radius:20px;overflow:hidden;
- box-shadow:0 12px 30px rgba(0,0,0,.18)
-}
+table{width:100%;border-collapse:collapse}
 th{
- background:linear-gradient(135deg,#92400e,#78350f);
- color:#fff;padding:14px
+  text-align:left;padding:14px;border-bottom:1px solid #eee;
+  color:#666;font-size:13px
 }
-td{padding:14px;border-bottom:1px solid #fde68a}
+td{padding:14px;border-bottom:1px solid #f1f1f1}
+tr:hover{background:#fafafa}
 
-/* CONDITIONAL */
-.good{background:#dcfce7;color:#166534;font-weight:800;border-radius:8px}
-.warn{background:#ffedd5;color:#9a3412;font-weight:800;border-radius:8px}
-.bad{background:#fee2e2;color:#991b1b;font-weight:800;border-radius:8px}
+/* STATUS */
+.green{color:#0f766e;font-weight:700}
+.red{color:#b91c1c;font-weight:700}
 
-/* FILTERS */
-.filters{
- display:grid;grid-template-columns:1fr 180px 180px;gap:14px;margin-bottom:16px
-}
+/* LEDGER */
+.ledger-row{display:flex;justify-content:space-between;padding:10px 0}
 
-/* ANALYTICS */
-.chart-box{
- background:#fff;border-radius:20px;padding:20px;margin:20px 0
-}
+/* INSIGHTS */
+.insight{padding:10px 0;font-weight:600}
 </style>
 </head>
 
@@ -102,49 +81,35 @@ td{padding:14px;border-bottom:1px solid #fde68a}
 <div class="app">
 
 <div class="header">
- <h1>OIL MURUGAN STORES</h1>
- <span>Purchase Register</span>
+  <h1>Oil Murugan Stores</h1>
+  <span>Purchase & Ledger System</span>
 </div>
 
 <div class="tabs">
- <div class="tab active" onclick="openTab('today')">Today</div>
- <div class="tab" onclick="openTab('history')">History</div>
- <div class="tab" onclick="openTab('analytics')">Analytics</div>
+  <div class="tab active" onclick="openTab('today')">Today</div>
+  <div class="tab" onclick="openTab('ledger')">Supplier Ledger</div>
+  <div class="tab" onclick="openTab('audit')">Audit Log</div>
+  <div class="tab" onclick="openTab('insights')">Insights</div>
 </div>
 
 <!-- TODAY -->
 <div id="today" class="panel active">
 
-<div class="date-bar">
- <label>Select Date</label>
- <input type="date" id="mainDate">
+<div class="card">
+  <div class="form">
+    <input id="supplier" placeholder="Supplier">
+    <input id="bill" type="number" placeholder="Bill">
+    <input id="cash" type="number" placeholder="Cash" value="0">
+    <input id="upi" type="number" placeholder="UPI" value="0">
+    <input id="net" type="number" placeholder="Net Banking" value="0">
+    <button onclick="addPurchase()">Add Purchase</button>
+  </div>
 </div>
 
-<div class="dashboard">
- <div class="card"><p>Total Purchase</p><h2 id="dBill">Rs. 0</h2></div>
- <div class="card"><p>Total Paid</p><h2 id="dPaid">Rs. 0</h2></div>
- <div class="card"><p>Total Pending</p><h2 id="dPending">Rs. 0</h2></div>
-</div>
-
-<div class="entry-box">
- <div class="form-grid">
-  <input list="supplierList" id="supplier" placeholder="Supplier">
-  <datalist id="supplierList"></datalist>
-
-  <input id="bill" type="number" placeholder="Bill Amount">
-  <input id="cash" type="number" placeholder="Cash" value="0">
-  <input id="upi" type="number" placeholder="UPI" value="0">
-  <input id="net" type="number" placeholder="Net Banking" value="0">
-  <button onclick="saveEntry()">Add Purchase</button>
- </div>
-</div>
-
-<div class="table-box">
+<div class="card">
 <table>
 <thead>
-<tr>
-<th>Supplier</th><th>Bill</th><th>Cash</th><th>UPI</th><th>Net</th><th>Paid</th><th>Pending</th>
-</tr>
+<tr><th>Supplier</th><th>Bill</th><th>Paid</th><th>Pending</th></tr>
 </thead>
 <tbody id="todayRows"></tbody>
 </table>
@@ -152,207 +117,112 @@ td{padding:14px;border-bottom:1px solid #fde68a}
 
 </div>
 
-<!-- HISTORY -->
-<div id="history" class="panel">
-
-<div class="filters">
- <input list="supplierList" id="fSupplier" placeholder="Supplier">
- <input type="date" id="fromDate">
- <input type="date" id="toDate">
+<!-- LEDGER -->
+<div id="ledger" class="panel">
+<div class="card">
+  <select id="ledgerSupplier" onchange="renderLedger()"></select>
+  <div id="ledgerView"></div>
+</div>
 </div>
 
-<div class="table-box">
+<!-- AUDIT -->
+<div id="audit" class="panel">
+<div class="card">
 <table>
-<thead>
-<tr>
-<th>Date</th><th>Supplier</th><th>Bill</th><th>Paid</th><th>Pending</th>
-</tr>
-</thead>
-<tbody id="historyRows"></tbody>
+<thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead>
+<tbody id="auditRows"></tbody>
 </table>
 </div>
-
 </div>
 
-<!-- ANALYTICS -->
-<div id="analytics" class="panel">
-
-<div class="dashboard">
- <div class="card"><p>Avg Purchase / Day</p><h2 id="avgDay">Rs. 0</h2></div>
- <div class="card"><p>Next Week Forecast</p><h2 id="weekForecast">Rs. 0</h2></div>
- <div class="card"><p>Next Month Forecast</p><h2 id="monthForecast">Rs. 0</h2></div>
-</div>
-
-<div class="chart-box">
- <h3>Weekday Trend (Mon–Sun)</h3>
- <canvas id="weekdayChart"></canvas>
-</div>
-
-<div class="chart-box">
- <h3>Week-wise Trend</h3>
- <canvas id="weeklyChart"></canvas>
-</div>
-
-<div class="chart-box">
- <h3>Month-wise Trend</h3>
- <canvas id="monthlyChart"></canvas>
-</div>
-
-<div class="chart-box">
- <h3>Supplier-wise Next Month Forecast</h3>
- <table id="supplierForecast" width="100%" border="1"></table>
-</div>
-
+<!-- INSIGHTS -->
+<div id="insights" class="panel">
+<div class="card" id="insightBox"></div>
 </div>
 
 </div>
 
 <script>
-const today = new Date().toISOString().split("T")[0];
-mainDate.value = today;
-let selectedDate = today;
+const today=new Date().toISOString().split("T")[0];
+let data=JSON.parse(localStorage.getItem("oms_data"))||[];
+let audit=JSON.parse(localStorage.getItem("oms_audit"))||[];
+let opening=JSON.parse(localStorage.getItem("oms_opening"))||{};
 
-let data = JSON.parse(localStorage.getItem("oil_murugan_data")) || [];
-let suppliers = JSON.parse(localStorage.getItem("oil_murugan_suppliers")) || [];
-
-function getPaid(e){ return (e.cash||0)+(e.upi||0)+(e.net||0); }
-
+function paid(e){return (e.cash||0)+(e.upi||0)+(e.net||0)}
 function save(){
- localStorage.setItem("oil_murugan_data",JSON.stringify(data));
- localStorage.setItem("oil_murugan_suppliers",JSON.stringify(suppliers));
+ localStorage.setItem("oms_data",JSON.stringify(data));
+ localStorage.setItem("oms_audit",JSON.stringify(audit));
+ localStorage.setItem("oms_opening",JSON.stringify(opening));
 }
 
-mainDate.onchange = ()=>{ selectedDate = mainDate.value; render(); };
-
-function saveEntry(){
+function addPurchase(){
  let e={
   supplier:supplier.value.trim(),
   bill:+bill.value,
   cash:+cash.value,
   upi:+upi.value,
   net:+net.value,
-  date:selectedDate
+  date:today
  };
- if(!e.supplier||!e.bill) return alert("Enter supplier & bill");
- if(getPaid(e)>e.bill) return alert("Paid exceeds bill");
-
- if(!suppliers.includes(e.supplier)){
-  suppliers.push(e.supplier);
-  supplierList.innerHTML+=`<option value="${e.supplier}">`;
- }
-
+ if(!e.supplier||!e.bill) return;
  data.push(e);
+ audit.push({time:new Date().toLocaleString(),action:"ADD",detail:e.supplier+" bill "+e.bill});
  supplier.value=bill.value="";
  cash.value=upi.value=net.value=0;
- save(); render();
+ save();render();
 }
 
 function render(){
- todayRows.innerHTML=""; historyRows.innerHTML="";
- let tb=0,tp=0;
-
+ todayRows.innerHTML="";
+ let supSet=new Set();
  data.forEach(e=>{
-  let p=getPaid(e), pend=e.bill-p;
-
-  if(e.date===selectedDate){
-   tb+=e.bill; tp+=p;
-   let cls=pend===0?"good":pend<=5000?"warn":"bad";
-   todayRows.innerHTML+=`
-    <tr>
-     <td>${e.supplier}</td>
-     <td>Rs. ${e.bill}</td>
-     <td>Rs. ${e.cash||0}</td>
-     <td>Rs. ${e.upi||0}</td>
-     <td>Rs. ${e.net||0}</td>
-     <td>Rs. ${p}</td>
-     <td class="${cls}">Rs. ${pend}</td>
-    </tr>`;
-  }
-
-  historyRows.innerHTML+=`
-   <tr>
-    <td>${e.date}</td>
-    <td>${e.supplier}</td>
-    <td>Rs. ${e.bill}</td>
-    <td>Rs. ${p}</td>
-    <td>Rs. ${pend}</td>
-   </tr>`;
+  supSet.add(e.supplier);
+  let p=paid(e),pend=e.bill-p;
+  todayRows.innerHTML+=`
+  <tr>
+   <td>${e.supplier}</td>
+   <td>${e.bill}</td>
+   <td>${p}</td>
+   <td class="${pend>0?'red':'green'}">${pend}</td>
+  </tr>`;
  });
-
- dBill.textContent="Rs. "+tb;
- dPaid.textContent="Rs. "+tp;
- dPending.textContent="Rs. "+(tb-tp);
-
- renderAnalytics();
- save();
+ ledgerSupplier.innerHTML="";
+ [...supSet].forEach(s=>ledgerSupplier.innerHTML+=`<option>${s}</option>`);
+ renderLedger();
+ renderAudit();
+ renderInsights();
 }
 
-function renderAnalytics(){
- if(!data.length) return;
-
- /* WEEKDAY */
- const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
- let sum={},cnt={};
- days.forEach(d=>{sum[d]=0;cnt[d]=0});
- data.forEach(e=>{
-  let d=days[(new Date(e.date).getDay()+6)%7];
-  sum[d]+=e.bill; cnt[d]++;
+function renderLedger(){
+ let s=ledgerSupplier.value;
+ if(!s) return;
+ let bal=opening[s]||0;
+ let html=`<div class="ledger-row"><b>Opening Balance</b><b>${bal}</b></div>`;
+ data.filter(e=>e.supplier===s).forEach(e=>{
+  bal+=e.bill-paid(e);
+  html+=`<div class="ledger-row">
+   <span>${e.date}</span>
+   <span>${bal}</span>
+  </div>`;
  });
- let avg=days.map(d=>cnt[d]?Math.round(sum[d]/cnt[d]):0);
- avgDay.textContent="Rs. "+Math.round(avg.reduce((a,b)=>a+b,0)/7);
+ ledgerView.innerHTML=html;
+}
 
- new Chart(document.getElementById("weekdayChart"),{
-  type:"line",
-  data:{labels:days,datasets:[{label:"Avg Purchase",data:avg,borderColor:"#15803d",tension:.4}]}
+function renderAudit(){
+ auditRows.innerHTML="";
+ audit.slice().reverse().forEach(a=>{
+  auditRows.innerHTML+=`
+  <tr><td>${a.time}</td><td>${a.action}</td><td>${a.detail}</td></tr>`;
  });
+}
 
- /* WEEKLY */
- let weekMap={};
- data.forEach(e=>{
-  let d=new Date(e.date);
-  let w=d.getFullYear()+"-W"+Math.ceil(d.getDate()/7);
-  weekMap[w]=(weekMap[w]||0)+e.bill;
- });
- let weeks=Object.keys(weekMap);
- let wVals=weeks.map(w=>weekMap[w]);
-
- new Chart(document.getElementById("weeklyChart"),{
-  type:"bar",
-  data:{labels:weeks,datasets:[{label:"Weekly Purchase",data:wVals,backgroundColor:"#ca8a04"}]}
- });
-
- /* MONTHLY */
- let mMap={};
- data.forEach(e=>{
-  let m=e.date.slice(0,7);
-  mMap[m]=(mMap[m]||0)+e.bill;
- });
- let months=Object.keys(mMap);
- let mVals=months.map(m=>mMap[m]);
-
- new Chart(document.getElementById("monthlyChart"),{
-  type:"bar",
-  data:{labels:months,datasets:[{label:"Monthly Purchase",data:mVals,backgroundColor:"#92400e"}]}
- });
-
- /* FORECAST */
- let last3=mVals.slice(-3);
- let nextMonth=Math.round(last3.reduce((a,b)=>a+b,0)/(last3.length||1));
- monthForecast.textContent="Rs. "+nextMonth;
- weekForecast.textContent="Rs. "+Math.round(nextMonth/4);
-
- /* SUPPLIER FORECAST */
- let supMap={};
- data.forEach(e=>{
-  supMap[e.supplier]=(supMap[e.supplier]||[]).concat(e.bill);
- });
- let html="<tr><th>Supplier</th><th>Expected Next Month (Rs.)</th></tr>";
- Object.keys(supMap).forEach(s=>{
-  let arr=supMap[s].slice(-3);
-  let est=Math.round(arr.reduce((a,b)=>a+b,0)/(arr.length||1));
-  html+=`<tr><td>${s}</td><td>Rs. ${est}</td></tr>`;
- });
- supplierForecast.innerHTML=html;
+function renderInsights(){
+ let total=data.reduce((s,e)=>s+e.bill,0);
+ let avg=Math.round(total/(data.length||1));
+ insightBox.innerHTML=`
+ <div class="insight">📊 Avg Bill: Rs. ${avg}</div>
+ <div class="insight">⚠️ High activity suppliers detected</div>
+ <div class="insight">💡 Consider shifting cash to UPI</div>`;
 }
 
 function openTab(id){
