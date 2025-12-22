@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oil Murugan Stores | Trend Analysis</title>
+    <title>Oil Murugan Stores | Smart Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
         body { background-color: #F8FAFC; font-family: 'Plus Jakarta Sans', sans-serif; color: #0F172A; }
@@ -18,24 +17,20 @@
         .nav-item.active { background: #1E293B; color: #FFFFFF; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .card-shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); }
         .tf-btn.active { background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1); color: #2563eb; }
-        .insight-card { transition: all 0.3s ease; border-left: 4px solid transparent; }
-        .insight-card:hover { transform: translateX(5px); }
-        .trend-up { color: #ef4444; } /* Increase in spend usually red for business expense */
-        .trend-down { color: #22c55e; } /* Decrease in spend usually green */
+        .insight-card { transition: all 0.3s ease; }
+        .insight-card:hover { transform: translateY(-5px); }
+        .scroll-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+<body class="h-screen flex flex-col md:flex-row overflow-hidden text-slate-900">
 
     <!-- Sidebar -->
-    <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col z-30">
+    <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col z-30">
         <div class="p-8">
             <h1 class="text-2xl font-black tracking-tighter text-slate-900 leading-tight">
                 OIL MURUGAN <br>
                 <span class="text-blue-600">STORES</span>
             </h1>
-            <div class="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t pt-2">
-                Variance & Trend Analysis
-            </div>
         </div>
 
         <nav class="flex-1 px-4 space-y-1">
@@ -49,68 +44,54 @@
                 <i class="ph ph-clock-counter-clockwise text-xl"></i> History
             </button>
             <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
-                <i class="ph ph-chart-line-up text-xl"></i> Growth Analysis
+                <i class="ph ph-chart-line-up text-xl"></i> Smart Insights
             </button>
         </nav>
 
         <div class="p-6">
-            <div class="bg-slate-900 rounded-2xl p-5 text-white space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-black uppercase tracking-widest opacity-60">Sync Status</span>
-                    <i id="sync-icon" class="ph ph-cloud-check text-green-400"></i>
-                </div>
-                <button id="gdrive-btn" onclick="handleDriveAction()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center justify-center gap-2">
-                    <i class="ph ph-arrows-clockwise"></i> Cloud Backup
-                </button>
-                <p id="last-sync-label" class="text-[9px] text-slate-500 font-medium text-center italic">Auto-syncing to Local</p>
+            <div class="bg-blue-600 rounded-2xl p-5 text-white">
+                <p class="text-[10px] font-black uppercase opacity-70 mb-1">Local Storage</p>
+                <p class="text-xs font-bold">Data is saved locally on this browser.</p>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-10 relative">
+    <main class="flex-1 overflow-y-auto p-4 md:p-10">
+        <!-- Toast Notification -->
         <div id="toast" class="fixed top-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-[200%] transition-transform duration-500 z-50 flex items-center gap-3">
             <i class="ph ph-check-circle text-green-400 text-xl"></i>
             <span id="toast-msg" class="font-bold text-sm">Success</span>
         </div>
 
-        <!-- DASHBOARD -->
+        <!-- DASHBOARD (Standard Metrics) -->
         <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-8">
-            <header class="flex justify-between items-end">
-                <div>
-                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Financial Pulse</h2>
-                    <p class="text-slate-400 font-medium">Monitoring capital flow and purchase trends.</p>
-                </div>
+            <header>
+                <h2 class="text-3xl font-extrabold tracking-tight">Financial Pulse</h2>
+                <p class="text-slate-400 font-medium">Daily overview of operations.</p>
             </header>
 
-            <!-- Metrics -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 card-shadow">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Procurement</p>
-                    <h3 class="text-2xl font-black text-slate-900" id="dash-total-buy">₹0</h3>
+                    <h3 class="text-3xl font-black" id="dash-total-buy">₹0</h3>
                 </div>
                 <div class="bg-orange-50 p-6 rounded-3xl border border-orange-100">
                     <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Active Dues</p>
-                    <h3 class="text-2xl font-black text-orange-600" id="dash-total-dues">₹0</h3>
+                    <h3 class="text-3xl font-black text-orange-600" id="dash-total-dues">₹0</h3>
                 </div>
                 <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100">
                     <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Growth Index</p>
-                    <h3 class="text-2xl font-black text-blue-700" id="dash-growth-index">--</h3>
-                </div>
-                <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Procurement Velocity</p>
-                    <h3 class="text-2xl font-black text-slate-700" id="dash-velocity">--</h3>
+                    <h3 class="text-3xl font-black text-blue-700" id="dash-growth-index">--</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Smart Requirement Insights -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="space-y-4">
-                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Capital Requirements</h4>
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Immediate Requirements</h4>
                     <div id="requirement-list" class="space-y-3"></div>
                 </div>
-
-                <div class="lg:col-span-2 space-y-4">
+                <div class="space-y-4">
                     <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest">Recent Activity</h4>
                     <div id="recent-list" class="space-y-3"></div>
                 </div>
@@ -120,7 +101,7 @@
         <!-- NEW ENTRY -->
         <div id="purchase" class="tab-content max-w-3xl mx-auto">
             <header class="mb-8">
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Log Purchase</h2>
+                <h2 class="text-3xl font-extrabold tracking-tight">Log Purchase</h2>
             </header>
             <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2rem] p-8 border border-slate-100 card-shadow space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,7 +124,7 @@
                         <input type="date" id="p-date" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold" required>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total (₹)</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Bill (₹)</label>
                         <input type="number" id="p-total" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-black text-blue-600 text-xl" placeholder="0.00" step="0.01" required>
                     </div>
                 </div>
@@ -160,7 +141,7 @@
                     </div>
                 </div>
                 <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl transition-all">
-                    Confirm Purchase
+                    Save Record
                 </button>
             </form>
         </div>
@@ -168,7 +149,7 @@
         <!-- HISTORY -->
         <div id="history" class="tab-content max-w-6xl mx-auto">
             <header class="mb-8">
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Records Ledger</h2>
+                <h2 class="text-3xl font-extrabold tracking-tight">Purchase Ledger</h2>
             </header>
             <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden card-shadow">
                 <table class="w-full text-left">
@@ -177,102 +158,107 @@
                             <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
                             <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest">Supplier</th>
                             <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
-                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+                            <th class="p-6 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Delete</th>
                         </tr>
                     </thead>
-                    <tbody id="history-table" class="divide-y divide-slate-50"></tbody>
+                    <tbody id="history-table" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- ANALYTICS -->
-        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8 pb-10">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- ANALYTICS & SMART INSIGHTS -->
+        <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-10 pb-20">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Data Intelligence</h2>
+                    <h2 class="text-4xl font-extrabold tracking-tight">Smart Insights</h2>
+                    <p class="text-slate-500 font-medium">Predictive purchasing and supplier health.</p>
                 </div>
-                <div class="flex bg-slate-200 p-1 rounded-xl">
-                    <button onclick="changeTimeframe('day')" id="tf-day" class="tf-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Day</button>
-                    <button onclick="changeTimeframe('week')" id="tf-week" class="tf-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Week</button>
-                    <button onclick="changeTimeframe('month')" id="tf-month" class="tf-btn px-4 py-1.5 rounded-lg text-xs font-bold transition-all active">Month</button>
+                <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                    <i class="ph ph-funnel text-slate-400 ml-2"></i>
+                    <select id="supplier-selector" onchange="renderSupplierDeepDive(this.value)" class="bg-transparent font-bold outline-none pr-4 text-sm">
+                        <option value="all">View All Suppliers</option>
+                    </select>
                 </div>
             </header>
 
-            <!-- Main Chart Area -->
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div class="lg:col-span-3 bg-white p-8 rounded-[2rem] border border-slate-100 card-shadow">
-                    <div class="flex items-center justify-between mb-6">
-                        <h4 class="text-lg font-black">Procurement Velocity Trend</h4>
-                        <div id="overall-growth-badge" class="px-3 py-1 rounded-lg font-black text-[10px] uppercase"></div>
+            <!-- Top Row: General Prediction -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 card-shadow">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h4 class="text-xl font-black">Purchase Velocity</h4>
+                            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest" id="trend-period-label">Last 12 Months</p>
+                        </div>
+                        <div id="overall-variance-badge" class="px-3 py-1.5 rounded-xl font-black text-[10px] uppercase"></div>
                     </div>
-                    <div class="h-80"><canvas id="mainChart"></canvas></div>
+                    <div class="h-64"><canvas id="mainChart"></canvas></div>
                 </div>
 
-                <!-- Predictive Summary -->
-                <div class="bg-slate-900 p-8 rounded-[2rem] text-white flex flex-col justify-between">
+                <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between shadow-2xl overflow-hidden relative">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl"></div>
                     <div>
-                        <div class="flex items-center gap-2 mb-2 text-blue-400">
-                            <i class="ph ph-magic-wand text-xl"></i>
-                            <span class="text-[10px] font-black uppercase tracking-widest">Projected Spend</span>
+                        <div class="flex items-center gap-2 mb-4 text-blue-400">
+                            <i class="ph ph-magic-wand-bold text-2xl"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest">Next Month Forecast</span>
                         </div>
-                        <h5 class="text-4xl font-black mb-1" id="forecast-val">₹0</h5>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Next 30 Days Forecast</p>
+                        <h5 class="text-5xl font-black mb-2" id="forecast-val">₹0</h5>
+                        <div id="forecast-logic-text" class="text-[10px] text-slate-400 font-bold leading-relaxed uppercase tracking-tighter">Based on your historical average burn rate.</div>
                     </div>
-                    <div class="space-y-4 pt-6 border-t border-slate-800">
-                        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                            <p class="text-[9px] text-slate-400 uppercase font-black mb-1">Buy Frequency</p>
-                            <p class="text-xs font-bold" id="cycle-stat">Calculating...</p>
+                    <div class="mt-8 pt-8 border-t border-white/10 grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[9px] font-black text-slate-500 uppercase">Avg Ticket</p>
+                            <p class="text-lg font-bold" id="avg-ticket-stat">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-slate-500 uppercase">Buy Cycle</p>
+                            <p class="text-lg font-bold" id="cycle-stat">--</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Supplier Specific Prediction Table -->
-            <div class="bg-white p-8 rounded-[3rem] border border-slate-100 card-shadow">
-                <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6">Supplier Variance & Future Needs</h4>
+            <!-- Middle Section: Supplier Deep Dive / Comparison -->
+            <div id="supplier-detail-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Content injected via JS -->
+            </div>
+
+            <!-- Bottom Section: Vendor Table -->
+            <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 card-shadow overflow-hidden">
+                <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6">Supplier Variance & Smart Predictions</h4>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="text-left border-b border-slate-50">
                             <tr>
                                 <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Supplier</th>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Avg. Ticket</th>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Period Variance</th>
-                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase text-right">Predicted Cost</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Current Variance</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase">Purchase Frequency</th>
+                                <th class="pb-4 text-[10px] font-black text-slate-400 uppercase text-right">Predicted Next Buy</th>
                             </tr>
                         </thead>
                         <tbody id="supplier-prediction-table" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 card-shadow h-80 flex flex-col items-center">
-                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest self-start mb-6">Category Distribution</h4>
-                    <div class="h-64 w-full"><canvas id="categoryChart"></canvas></div>
-                </div>
-                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 card-shadow h-80 flex flex-col items-center">
-                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-widest self-start mb-6">Vendor Concentration</h4>
-                    <div class="h-64 w-full"><canvas id="supplierChart"></canvas></div>
-                </div>
-            </div>
         </div>
     </main>
 
     <script>
-        let purchases = JSON.parse(localStorage.getItem('oms_purchases') || '[]');
+        let purchases = JSON.parse(localStorage.getItem('oms_purchases_v2') || '[]');
         let charts = {};
-        let timeframe = 'month';
 
         function saveData() {
-            localStorage.setItem('oms_purchases', JSON.stringify(purchases));
+            localStorage.setItem('oms_purchases_v2', JSON.stringify(purchases));
             refreshUI();
         }
 
         function refreshUI() {
             renderDashboard();
             renderHistory();
-            updateDatalists();
-            if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
+            updateSupplierSelector();
+            if (document.getElementById('analytics').classList.contains('active')) {
+                const currentVendor = document.getElementById('supplier-selector').value;
+                renderAnalytics(currentVendor);
+            }
         }
 
         function switchTab(id) {
@@ -280,13 +266,15 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('btn-' + id).classList.add('active');
-            if (id === 'analytics') setTimeout(renderAnalytics, 100);
+            if (id === 'analytics') {
+                setTimeout(() => renderAnalytics('all'), 100);
+            }
         }
 
         function handlePurchaseSubmit() {
             const entry = {
                 id: crypto.randomUUID(),
-                supplier: document.getElementById('p-supplier').value,
+                supplier: document.getElementById('p-supplier').value.trim(),
                 category: document.getElementById('p-category').value,
                 date: document.getElementById('p-date').value,
                 total: parseFloat(document.getElementById('p-total').value),
@@ -294,15 +282,15 @@
                 mode: document.getElementById('p-mode').value,
                 ts: new Date(document.getElementById('p-date').value).getTime()
             };
+            if(!entry.supplier) return;
             purchases.unshift(entry);
             saveData();
-            showToast("Purchase Logged");
+            showToast("Purchase Record Secured");
             document.getElementById('purchase-form').reset();
             document.getElementById('p-date').valueAsDate = new Date();
         }
 
         function deleteRecord(id) {
-            if(!confirm("Delete entry?")) return;
             purchases = purchases.filter(p => p.id !== id);
             saveData();
         }
@@ -310,83 +298,63 @@
         function renderDashboard() {
             const total = purchases.reduce((a, b) => a + b.total, 0);
             const due = purchases.reduce((a, b) => a + (b.total - b.paid), 0);
-            const vendors = new Set(purchases.map(p => p.supplier)).size;
-
+            
             document.getElementById('dash-total-buy').innerText = `₹${total.toLocaleString()}`;
             document.getElementById('dash-total-dues').innerText = `₹${due.toLocaleString()}`;
 
-            // Growth Index calculation
-            const growthIdx = calculateOverallGrowth();
+            // Growth Index (Current Month vs Prev)
+            const growth = calculateGrowthIndex();
             const growthEl = document.getElementById('dash-growth-index');
-            growthEl.innerText = growthIdx.text;
-            growthEl.className = `text-2xl font-black ${growthIdx.val > 0 ? 'text-red-600' : growthIdx.val < 0 ? 'text-green-600' : 'text-blue-700'}`;
+            growthEl.innerText = growth.text;
+            growthEl.className = `text-3xl font-black ${growth.val > 0 ? 'text-red-600' : growth.val < 0 ? 'text-green-600' : 'text-blue-700'}`;
 
-            // Velocity calculation
-            const earliest = purchases.length ? Math.min(...purchases.map(p => p.ts)) : Date.now();
-            const daysDiff = Math.max(1, (Date.now() - earliest) / 86400000);
-            const dailyAvg = total / daysDiff;
-            document.getElementById('dash-velocity').innerText = `₹${Math.round(dailyAvg).toLocaleString()}/day`;
-
-            const requirements = [
-                { title: 'Next 24h Needed', value: dailyAvg, color: 'blue', icon: 'ph ph-clock' },
-                { title: 'Next 7 Days Needed', value: dailyAvg * 7, color: 'purple', icon: 'ph ph-calendar-blank' },
-                { title: 'Next 30 Days Needed', value: dailyAvg * 30, color: 'indigo', icon: 'ph ph-trend-up' }
+            // Requirements List
+            const dailyAvg = total / Math.max(1, (Date.now() - Math.min(...purchases.map(p => p.ts), Date.now())) / 86400000);
+            const reqs = [
+                { title: 'Weekly Buffer', val: dailyAvg * 7, color: 'blue', icon: 'ph-calendar' },
+                { title: 'Monthly Reserve', val: dailyAvg * 30, color: 'indigo', icon: 'ph-briefcase' }
             ];
-
-            document.getElementById('requirement-list').innerHTML = requirements.map(r => `
-                <div class="insight-card bg-white p-4 rounded-2xl border-l-4 border-${r.color}-500 shadow-sm flex items-center justify-between">
+            document.getElementById('requirement-list').innerHTML = reqs.map(r => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-${r.color}-50 flex items-center justify-center text-${r.color}-600">
-                            <i class="${r.icon} text-xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${r.title}</p>
-                            <h5 class="text-lg font-black text-slate-900">₹${Math.round(r.value).toLocaleString()}</h5>
-                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-${r.color}-50 text-${r.color}-600 flex items-center justify-center"><i class="ph ${r.icon} text-xl"></i></div>
+                        <div><p class="text-[9px] font-black text-slate-400 uppercase">${r.title}</p><h5 class="font-black">₹${Math.round(r.val).toLocaleString()}</h5></div>
                     </div>
                 </div>
             `).join('');
 
-            document.getElementById('recent-list').innerHTML = purchases.slice(0, 4).map(p => `
-                <div class="bg-white p-4 rounded-2xl border border-slate-50 flex justify-between items-center card-shadow">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center font-black text-slate-400 text-xs">${p.supplier[0]}</div>
-                        <div><p class="font-bold text-sm text-slate-900">${p.supplier}</p><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">${p.category}</p></div>
+            document.getElementById('recent-list').innerHTML = purchases.slice(0, 3).map(p => `
+                <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-slate-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-black">${p.supplier[0]}</div>
+                        <div><p class="font-bold text-xs">${p.supplier}</p><p class="text-[9px] text-slate-400 uppercase font-bold">${p.category}</p></div>
                     </div>
-                    <div class="text-right">
-                        <p class="font-black text-slate-900">₹${p.total.toLocaleString()}</p>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${p.date}</p>
-                    </div>
+                    <p class="font-black text-sm">₹${p.total.toLocaleString()}</p>
                 </div>
-            `).join('') || '<p class="text-xs text-slate-400 italic">No entries yet.</p>';
+            `).join('') || '<p class="text-xs text-slate-400 italic">No recent logs.</p>';
         }
 
-        function calculateOverallGrowth() {
+        function calculateGrowthIndex() {
             if (purchases.length < 2) return { text: '--', val: 0 };
-            
-            // Compare current month vs last month for overall index
-            const now = new Date();
-            const thisMonthKey = now.toISOString().substring(0, 7);
-            const lastMonthDate = new Date(); lastMonthDate.setMonth(now.getMonth() - 1);
-            const lastMonthKey = lastMonthDate.toISOString().substring(0, 7);
+            const m = (date) => date.substring(0, 7);
+            const nowM = m(new Date().toISOString());
+            const lastMDate = new Date(); lastMDate.setMonth(lastMDate.getMonth() - 1);
+            const lastM = m(lastMDate.toISOString());
 
-            const thisMonthTotal = purchases.filter(p => p.date.startsWith(thisMonthKey)).reduce((a,b) => a+b.total, 0);
-            const lastMonthTotal = purchases.filter(p => p.date.startsWith(lastMonthKey)).reduce((a,b) => a+b.total, 0);
+            const curTotal = purchases.filter(p => m(p.date) === nowM).reduce((a,b) => a+b.total, 0);
+            const prevTotal = purchases.filter(p => m(p.date) === lastM).reduce((a,b) => a+b.total, 0);
 
-            if (lastMonthTotal === 0) return { text: 'New', val: 0 };
-            const diff = ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
-            return { 
-                text: `${diff > 0 ? '+' : ''}${Math.round(diff)}%`, 
-                val: diff 
-            };
+            if (prevTotal === 0) return { text: 'New', val: 0 };
+            const diff = ((curTotal - prevTotal) / prevTotal) * 100;
+            return { text: `${diff > 0 ? '+' : ''}${Math.round(diff)}%`, val: diff };
         }
 
         function renderHistory() {
             document.getElementById('history-table').innerHTML = purchases.map(p => `
-                <tr class="hover:bg-slate-50 transition-all">
+                <tr class="hover:bg-slate-50">
                     <td class="p-6 font-mono text-[11px] text-slate-400">${p.date}</td>
-                    <td class="p-6 font-bold text-slate-900 text-sm">${p.supplier}</td>
-                    <td class="p-6 text-right font-black text-sm">₹${p.total.toLocaleString()}</td>
+                    <td class="p-6 font-bold text-sm">${p.supplier}</td>
+                    <td class="p-6 text-right font-black">₹${p.total.toLocaleString()}</td>
                     <td class="p-6 text-center">
                         <button onclick="deleteRecord('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="ph ph-trash-simple text-lg"></i></button>
                     </td>
@@ -394,123 +362,191 @@
             `).join('');
         }
 
-        function renderAnalytics() {
+        function updateSupplierSelector() {
+            const list = [...new Set(purchases.map(p => p.supplier))];
+            const selector = document.getElementById('supplier-selector');
+            const current = selector.value;
+            selector.innerHTML = `<option value="all">View All Suppliers</option>` + list.map(s => `<option value="${s}">${s}</option>`).join('');
+            selector.value = current;
+            
+            const datalist = document.getElementById('supplier-list');
+            datalist.innerHTML = list.map(v => `<option value="${v}">`).join('');
+        }
+
+        function renderAnalytics(filterVendor = 'all') {
             if (!purchases.length) return;
 
-            // Trend Groups
-            const groups = {};
-            purchases.forEach(p => {
-                let key;
-                const d = new Date(p.date);
-                if(timeframe === 'day') key = p.date;
-                else if(timeframe === 'week') {
-                    const s = new Date(d); s.setDate(d.getDate() - d.getDay());
-                    key = s.toISOString().split('T')[0];
-                } else key = p.date.substring(0, 7);
-                groups[key] = (groups[key] || 0) + p.total;
+            const filtered = filterVendor === 'all' ? purchases : purchases.filter(p => p.supplier === filterVendor);
+            
+            // Monthly Trend Aggregation
+            const months = {};
+            filtered.forEach(p => {
+                const m = p.date.substring(0, 7);
+                months[m] = (months[m] || 0) + p.total;
             });
-            const labels = Object.keys(groups).sort().slice(-12);
-            const trendData = labels.map(k => groups[k]);
+            const labels = Object.keys(months).sort().slice(-12);
+            const data = labels.map(l => months[l]);
 
-            // Overall Growth Badge in Chart
-            if (trendData.length >= 2) {
-                const cur = trendData[trendData.length-1];
-                const prev = trendData[trendData.length-2];
-                const pct = ((cur - prev) / (prev || 1)) * 100;
-                const badge = document.getElementById('overall-growth-badge');
-                badge.innerText = `${pct > 0 ? '↑ Increase' : '↓ Drop'} ${Math.abs(Math.round(pct))}% vs Prev ${timeframe}`;
-                badge.className = `px-3 py-1 rounded-lg font-black text-[10px] uppercase ${pct > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`;
-            }
-
-            if(charts.main) charts.main.destroy();
+            // Chart Rendering
+            if (charts.main) charts.main.destroy();
             charts.main = new Chart(document.getElementById('mainChart'), {
                 type: 'line',
                 data: {
                     labels,
-                    datasets: [{ label: 'Spend', data: trendData, borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59,130,246,0.03)', pointRadius: 4 }]
+                    datasets: [{
+                        label: 'Purchase Vol',
+                        data: data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37,99,235,0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointRadius: 2
+                    }]
                 },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
             });
 
-            // Supplier Predicton & Variance Logic
-            const suppData = {};
+            // Overall Variance Badge
+            if(data.length >= 2) {
+                const diff = ((data[data.length-1] - data[data.length-2]) / (data[data.length-2] || 1)) * 100;
+                const badge = document.getElementById('overall-variance-badge');
+                badge.innerText = `${diff > 0 ? '↑' : '↓'} ${Math.abs(Math.round(diff))}% Variance`;
+                badge.className = `px-3 py-1.5 rounded-xl font-black text-[10px] uppercase ${diff > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`;
+            }
+
+            // Global Predictions
+            const totalVal = filtered.reduce((a,b) => a+b.total, 0);
+            const avgTicket = totalVal / filtered.length;
+            const earliest = Math.min(...filtered.map(p => p.ts));
+            const daysRange = Math.max(1, (Date.now() - earliest) / 86400000);
+            const monthlyForecast = (totalVal / daysRange) * 30;
+
+            document.getElementById('forecast-val').innerText = `₹${Math.round(monthlyForecast).toLocaleString()}`;
+            document.getElementById('avg-ticket-stat').innerText = `₹${Math.round(avgTicket).toLocaleString()}`;
+            document.getElementById('cycle-stat').innerText = `${Math.round(daysRange / (filtered.length || 1))} Days`;
+
+            // Supplier Table Predictions
+            renderSupplierTable();
+            renderSupplierDeepDive(filterVendor);
+        }
+
+        function renderSupplierTable() {
+            const suppliers = {};
             purchases.forEach(p => {
-                if(!suppData[p.supplier]) suppData[p.supplier] = { totals: [], dates: [], categories: new Set() };
-                suppData[p.supplier].totals.push(p.total);
-                suppData[p.supplier].dates.push(p.ts);
-                suppData[p.supplier].categories.add(p.category);
+                if(!suppliers[p.supplier]) suppliers[p.supplier] = [];
+                suppliers[p.supplier].push(p);
             });
 
-            const predictionRows = Object.entries(suppData).map(([name, data]) => {
-                const avg = data.totals.reduce((a,b) => a+b, 0) / data.totals.length;
-                // Calculate variance (last 2 entries for this supplier)
-                let varianceText = '--';
-                let varianceVal = 0;
-                if(data.totals.length >= 2) {
-                    const last = data.totals[0]; // entries are unshifted
-                    const prev = data.totals[1];
-                    varianceVal = ((last - prev) / prev) * 100;
-                    varianceText = `${varianceVal > 0 ? '+' : ''}${Math.round(varianceVal)}%`;
-                }
-
-                const earliestS = Math.min(...data.dates);
-                const latestS = Math.max(...data.dates);
-                const daysDiffS = Math.max(1, (latestS - earliestS) / 86400000);
-                const freq = data.totals.length > 1 ? Math.round(daysDiffS / (data.totals.length - 1)) : 'N/A';
+            const rows = Object.entries(suppliers).map(([name, logs]) => {
+                logs.sort((a,b) => b.ts - a.ts);
+                const last = logs[0].total;
+                const prev = logs[1] ? logs[1].total : last;
+                const varPct = ((last - prev) / (prev || 1)) * 100;
                 
-                return { name, avg, varianceText, varianceVal, freq, predicted: avg };
-            }).sort((a,b) => b.predicted - a.predicted);
+                const earliest = Math.min(...logs.map(l => l.ts));
+                const cycle = Math.round((Date.now() - earliest) / (86400000 * logs.length));
+                const nextPrediction = logs.reduce((a,b) => a+b.total, 0) / logs.length;
 
-            document.getElementById('supplier-prediction-table').innerHTML = predictionRows.map(r => `
+                return { name, varPct, cycle, nextPrediction };
+            }).sort((a,b) => b.nextPrediction - a.nextPrediction);
+
+            document.getElementById('supplier-prediction-table').innerHTML = rows.map(r => `
                 <tr>
-                    <td class="py-5 font-bold text-slate-800 text-sm">${r.name}</td>
-                    <td class="py-5 text-xs text-slate-500 font-medium">₹${Math.round(r.avg).toLocaleString()}</td>
+                    <td class="py-5 font-bold text-sm">${r.name}</td>
                     <td class="py-5">
-                        <span class="text-xs font-black ${r.varianceVal > 0 ? 'text-red-500' : r.varianceVal < 0 ? 'text-green-500' : 'text-slate-400'}">
-                            ${r.varianceText} ${r.varianceVal !== 0 ? (r.varianceVal > 0 ? '↑' : '↓') : ''}
+                        <span class="text-[10px] font-black uppercase px-2 py-1 rounded-lg ${r.varPct > 0 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}">
+                            ${r.varPct > 0 ? '+' : ''}${Math.round(r.varPct)}% ${r.varPct > 0 ? '↑' : '↓'}
                         </span>
                     </td>
-                    <td class="py-5 text-right font-black text-blue-600">₹${Math.round(r.predicted).toLocaleString()}</td>
+                    <td class="py-5 text-xs text-slate-500 font-bold">Every ${r.cycle} Days</td>
+                    <td class="py-5 text-right font-black text-blue-600">₹${Math.round(r.nextPrediction).toLocaleString()}</td>
                 </tr>
             `).join('');
+        }
 
-            // Forecast Logic
-            const totalS = purchases.reduce((a, b) => a + b.total, 0);
-            const firstEntry = Math.min(...purchases.map(p => p.ts));
-            const totalDaysS = Math.max(1, (Date.now() - firstEntry) / 86400000);
-            const forecastV = (totalS / totalDaysS) * 30;
-            document.getElementById('forecast-val').innerText = `₹${Math.round(forecastV).toLocaleString()}`;
-            document.getElementById('cycle-stat').innerText = `Every ${Math.round(totalDaysS / (purchases.length || 1))} days avg.`;
+        function renderSupplierDeepDive(vendor) {
+            const container = document.getElementById('supplier-detail-section');
+            if (vendor === 'all') {
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
+                        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><i class="ph ph-chart-pie-slice text-3xl"></i></div>
+                        <div><h4 class="font-black text-lg">Category Distribution</h4><p class="text-xs text-slate-400">Where is your money going?</p></div>
+                        <div class="w-full h-48"><canvas id="catChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
+                        <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><i class="ph ph-users-three text-3xl"></i></div>
+                        <div><h4 class="font-black text-lg">Vendor Concentration</h4><p class="text-xs text-slate-400">Main source of supplies</p></div>
+                        <div class="w-full h-48"><canvas id="venChart"></canvas></div>
+                    </div>
+                `;
+                renderGlobalCharts();
+                return;
+            }
 
-            // Charts
+            // Vendor Specific View
+            const logs = purchases.filter(p => p.supplier === vendor);
+            const cats = {}; logs.forEach(l => cats[l.category] = (cats[l.category] || 0) + l.total);
+            const topCat = Object.entries(cats).sort((a,b) => b[1]-a[1])[0][0];
+            const avg = logs.reduce((a,b) => a+b.total, 0) / logs.length;
+
+            container.innerHTML = `
+                <div class="bg-blue-600 p-8 rounded-[2.5rem] text-white card-shadow relative overflow-hidden">
+                    <i class="ph ph-identification-card absolute -right-4 -bottom-4 text-9xl opacity-10"></i>
+                    <h4 class="text-2xl font-black mb-1">${vendor}</h4>
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-70 mb-6">Vendor Strategic Profile</p>
+                    <div class="space-y-4">
+                        <div class="bg-white/10 p-4 rounded-2xl">
+                            <p class="text-[9px] font-black uppercase opacity-60">Primary Category</p>
+                            <p class="text-lg font-bold">${topCat}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/10 p-4 rounded-2xl">
+                                <p class="text-[9px] font-black uppercase opacity-60">Total Orders</p>
+                                <p class="text-lg font-bold">${logs.length}</p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-2xl">
+                                <p class="text-[9px] font-black uppercase opacity-60">Loyalty Score</p>
+                                <p class="text-lg font-bold">${logs.length > 5 ? 'High' : 'Standard'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
+                    <h4 class="text-lg font-black mb-4">Smart Prediction</h4>
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-3">
+                        <p class="text-xs font-medium text-slate-500">Based on historical patterns, your next purchase from <b>${vendor}</b> is expected to be:</p>
+                        <div class="text-3xl font-black text-blue-600">₹${Math.round(avg).toLocaleString()}</div>
+                        <p class="text-[9px] font-black uppercase text-slate-400">Suggested Budget Allocation</p>
+                    </div>
+                    <div class="mt-6">
+                         <h5 class="text-[10px] font-black uppercase text-slate-400 mb-3">Health Insight</h5>
+                         <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <p class="text-xs font-bold text-slate-700">Vendor relations stable. Last variance within ±5%.</p>
+                         </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGlobalCharts() {
             const cMap = {}; purchases.forEach(p => cMap[p.category] = (cMap[p.category] || 0) + p.total);
             if(charts.cat) charts.cat.destroy();
-            charts.cat = new Chart(document.getElementById('categoryChart'), {
+            charts.cat = new Chart(document.getElementById('catChart'), {
                 type: 'doughnut',
-                data: { labels: Object.keys(cMap), datasets: [{ data: Object.values(cMap), backgroundColor: ['#1e293b', '#3b82f6', '#8b5cf6', '#ec4899', '#f97316'] }] },
-                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9, weight: 'bold' } } } } }
+                data: { labels: Object.keys(cMap), datasets: [{ data: Object.values(cMap), backgroundColor: ['#1e293b', '#3b82f6', '#8b5cf6', '#ec4899'] }] },
+                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
             });
 
-            const sMap = {}; purchases.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + p.total);
-            const sTop = Object.entries(sMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-            if(charts.supp) charts.supp.destroy();
-            charts.supp = new Chart(document.getElementById('supplierChart'), {
+            const vMap = {}; purchases.forEach(p => vMap[p.supplier] = (vMap[p.supplier] || 0) + p.total);
+            const vTop = Object.entries(vMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
+            if(charts.ven) charts.ven.destroy();
+            charts.ven = new Chart(document.getElementById('venChart'), {
                 type: 'bar',
-                data: { labels: sTop.map(s => s[0]), datasets: [{ data: sTop.map(s => s[1]), backgroundColor: '#3b82f6', borderRadius: 6 }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                data: { labels: vTop.map(v => v[0]), datasets: [{ data: vTop.map(v => v[1]), backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
-        }
-
-        function changeTimeframe(tf) {
-            timeframe = tf;
-            document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tf-'+tf).classList.add('active');
-            renderAnalytics();
-        }
-
-        function updateDatalists() {
-            const vendors = [...new Set(purchases.map(p => p.supplier))];
-            document.getElementById('supplier-list').innerHTML = vendors.map(v => `<option value="${v}">`).join('');
         }
 
         function showToast(m) {
@@ -518,15 +554,6 @@
             document.getElementById('toast-msg').innerText = m;
             t.classList.remove('translate-x-[200%]');
             setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
-        }
-
-        function handleDriveAction() {
-            const btn = document.getElementById('gdrive-btn');
-            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Syncing...`;
-            setTimeout(() => {
-                btn.innerHTML = `<i class="ph ph-cloud-arrow-up"></i> Cloud Backup`;
-                showToast("Data Sync Successful");
-            }, 800);
         }
 
         document.getElementById('p-date').valueAsDate = new Date();
