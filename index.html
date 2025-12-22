@@ -20,9 +20,13 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'oil-murugan-grocery';
 
-        // Attach to window for global access
-        window.firebaseCtx = { db, auth, appId, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query };
-        
+        // Global access for the save functions
+        window.db = db;
+        window.auth = auth;
+        window.appId = appId;
+        window.firestoreTools = { collection, addDoc, doc, deleteDoc };
+
+        // Handle Authentication
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -30,28 +34,35 @@
                 } else {
                     await signInAnonymously(auth);
                 }
+                console.log("Auth successful");
             } catch (e) {
-                console.error("Auth failed", e);
+                console.error("Auth initialization failed", e);
             }
         };
 
+        // Listen for Auth State
         onAuthStateChanged(auth, (user) => {
-            window.currentUser = user;
             if (user) {
-                document.getElementById('user-id').innerText = user.uid.substring(0, 12) + '...';
+                document.getElementById('user-id-display').innerText = user.uid.substring(0, 12) + '...';
+                document.getElementById('status-indicator').classList.remove('bg-yellow-400');
+                document.getElementById('status-indicator').classList.add('bg-green-400');
                 startListening(user.uid);
+            } else {
+                document.getElementById('user-id-display').innerText = "Not Signed In";
             }
         });
-
-        initAuth();
 
         function startListening(uid) {
             const q = query(collection(db, 'artifacts', appId, 'users', uid, 'grocery_purchases'));
             onSnapshot(q, (snapshot) => {
                 const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                window.updateData(data);
-            }, (err) => console.error("Firestore error:", err));
+                if (window.updateData) window.updateData(data);
+            }, (err) => {
+                console.error("Firestore sync error:", err);
+            });
         }
+
+        initAuth();
     </script>
 
     <style>
@@ -61,7 +72,6 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .nav-item.active { background: #111827; color: #FFFFFF; }
         .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
-        .insight-pill { background: rgba(59, 130, 246, 0.1); color: #2563eb; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 800; }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
@@ -96,10 +106,10 @@
         <div class="p-8">
             <div class="bg-gray-900 rounded-2xl p-4 text-white">
                 <div class="flex items-center gap-2 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
-                    <span class="text-[10px] font-black uppercase opacity-60">Session Active</span>
+                    <div id="status-indicator" class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <span class="text-[10px] font-black uppercase opacity-60">System Status</span>
                 </div>
-                <span id="user-id" class="text-[10px] font-mono block truncate">Syncing...</span>
+                <span id="user-id-display" class="text-[10px] font-mono block truncate">Connecting...</span>
             </div>
         </div>
     </aside>
@@ -117,7 +127,6 @@
         <div id="dashboard" class="tab-content active max-w-6xl mx-auto space-y-10">
             <header>
                 <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Overview</h2>
-                <p class="text-gray-500 font-medium">Business performance at a glance</p>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -134,7 +143,7 @@
                     <h3 class="text-2xl font-black text-blue-700" id="dash-vendor-count">0</h3>
                 </div>
                 <div class="bg-gray-50 p-6 rounded-3xl border border-gray-200">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Records</p>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Records</p>
                     <h3 class="text-2xl font-black text-gray-700" id="dash-bill-count">0</h3>
                 </div>
             </div>
@@ -155,7 +164,6 @@
         <div id="purchase" class="tab-content max-w-4xl mx-auto">
             <header class="mb-10">
                 <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Purchase Entry</h2>
-                <p class="text-gray-500 font-medium">Add new bill details to permanent ledger</p>
             </header>
 
             <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 card-shadow space-y-8">
@@ -191,21 +199,17 @@
                 </div>
 
                 <div class="p-8 bg-blue-50 rounded-3xl border border-blue-100 space-y-6">
-                    <h3 class="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
-                        <i class="ph ph-wallet"></i> Payment Status
-                    </h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Paid (₹)</label>
-                            <input type="number" id="p-paid" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none focus:ring-4 focus:ring-blue-100" placeholder="0.00">
+                            <input type="number" id="p-paid" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none" placeholder="0.00">
                         </div>
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Mode</label>
-                            <select id="p-mode" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none focus:ring-4 focus:ring-blue-100">
+                            <select id="p-mode" class="w-full px-6 py-4 bg-white border border-blue-200 rounded-xl font-bold outline-none">
                                 <option value="Cash">Cash</option>
                                 <option value="UPI">UPI</option>
-                                <option value="Bank">Bank Transfer</option>
-                                <option value="Credit">Credit/Due</option>
+                                <option value="Bank">Bank</option>
                             </select>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-white/50 border border-blue-100 rounded-xl">
@@ -216,7 +220,7 @@
                 </div>
 
                 <button type="submit" id="save-btn" class="w-full py-6 bg-blue-600 text-white rounded-3xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3">
-                    <i class="ph-fill ph-floppy-disk"></i> Save Permanent Record
+                    <i class="ph ph-floppy-disk"></i> Save Bill Record
                 </button>
             </form>
         </div>
@@ -224,13 +228,7 @@
         <!-- TAB: HISTORY -->
         <div id="history" class="tab-content max-w-6xl mx-auto">
             <header class="mb-10 flex flex-col md:flex-row justify-between items-end gap-4">
-                <div>
-                    <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Bill Archives</h2>
-                    <p class="text-gray-500 font-medium">Historically tracked procurement data</p>
-                </div>
-                <button onclick="exportCSV()" class="px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-gray-50 transition-all">
-                    <i class="ph ph-export"></i> Export CSV
-                </button>
+                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Archives</h2>
             </header>
 
             <div class="bg-white rounded-3xl border border-gray-200 overflow-hidden card-shadow">
@@ -241,66 +239,29 @@
                                 <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                                 <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Supplier</th>
                                 <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Value</th>
-                                <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Balance</th>
                                 <th class="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Delete</th>
                             </tr>
                         </thead>
-                        <tbody id="history-table" class="divide-y divide-gray-50 font-medium"></tbody>
+                        <tbody id="history-table" class="divide-y divide-gray-50"></tbody>
                     </table>
-                </div>
-                <div id="empty-state" class="hidden p-20 text-center text-gray-300 italic font-bold">
-                    No data recorded yet.
                 </div>
             </div>
         </div>
 
         <!-- TAB: ANALYTICS -->
         <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Data Insights</h2>
-                    <p class="text-gray-500 font-medium">Supplier performance & price fluctuations</p>
-                </div>
-                <div class="flex bg-gray-100 p-1 rounded-xl">
-                    <button onclick="changeTimeframe('month')" id="tf-month" class="tf-btn px-4 py-2 text-xs font-black rounded-lg bg-white shadow-sm transition-all">MONTHLY</button>
-                    <button onclick="changeTimeframe('year')" id="tf-year" class="tf-btn px-4 py-2 text-xs font-black rounded-lg transition-all">ANNUAL</button>
-                </div>
+            <header>
+                <h2 class="text-4xl font-extrabold text-gray-900 tracking-tight">Data Insights</h2>
             </header>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Period Spend</p>
-                    <h3 class="text-2xl font-black text-gray-900" id="analytics-period-spend">₹0</h3>
-                    <div id="period-trend" class="mt-1 text-xs font-bold">--</div>
-                </div>
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg Bill Value</p>
-                    <h3 class="text-2xl font-black text-gray-900" id="analytics-avg-tx">₹0</h3>
-                </div>
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Most Volatile</p>
-                    <h3 class="text-xl font-black text-blue-600 truncate" id="analytics-volatile">--</h3>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 card-shadow">
-                        <div class="flex justify-between items-center mb-8">
-                            <h5 class="text-sm font-black uppercase text-gray-400 tracking-widest">Procurement Trend</h5>
-                            <span class="insight-pill">Real-time Analysis</span>
-                        </div>
-                        <div class="h-80"><canvas id="trendChart"></canvas></div>
-                    </div>
-                </div>
+            <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 card-shadow h-96">
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
     </main>
 
     <script>
         let purchases = [];
-        let charts = {};
-        let currentTF = 'month';
+        let chart;
 
         window.updateData = (data) => {
             purchases = data.sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -320,29 +281,16 @@
 
         async function handlePurchaseSubmit() {
             const btn = document.getElementById('save-btn');
-            const originalHtml = btn.innerHTML;
-            
-            // UI Feedback
-            btn.disabled = true;
-            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Preparing session...`;
+            const user = window.auth?.currentUser;
 
-            // Wait for user if not yet initialized
-            let retryCount = 0;
-            while (!window.currentUser && retryCount < 10) {
-                await new Promise(r => setTimeout(r, 500));
-                retryCount++;
-            }
-
-            if (!window.currentUser) {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-                showToast("Connection timeout. Refresh page.");
+            if (!user) {
+                showToast("Still connecting to system... Please wait.");
                 return;
             }
 
-            btn.innerHTML = `<i class="ph ph-cloud-arrow-up animate-pulse"></i> Saving record...`;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> Saving...`;
 
-            const ctx = window.firebaseCtx;
             const payload = {
                 supplier: document.getElementById('p-supplier').value,
                 category: document.getElementById('p-category').value,
@@ -350,24 +298,24 @@
                 total: parseFloat(document.getElementById('p-total').value),
                 paid: parseFloat(document.getElementById('p-paid').value) || 0,
                 mode: document.getElementById('p-mode').value,
-                created: Date.now()
+                createdAt: Date.now()
             };
 
             try {
-                // Ensure absolute path following Rule 1
-                const userCol = ctx.collection(ctx.db, 'artifacts', ctx.appId, 'users', window.currentUser.uid, 'grocery_purchases');
-                await ctx.addDoc(userCol, payload);
+                const tools = window.firestoreTools;
+                const colRef = tools.collection(window.db, 'artifacts', window.appId, 'users', user.uid, 'grocery_purchases');
+                await tools.addDoc(colRef, payload);
                 
-                showToast("Entry Saved Permanently");
+                showToast("Record Saved Successfully");
                 document.getElementById('purchase-form').reset();
                 document.getElementById('p-date').valueAsDate = new Date();
                 updateBalanceDisplay();
             } catch (err) {
-                console.error("Save failed:", err);
-                showToast("Database error. Please try again.");
+                console.error("Save Error:", err);
+                showToast("Error saving. Check connection.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = originalHtml;
+                btn.innerHTML = `<i class="ph ph-floppy-disk"></i> Save Bill Record`;
             }
         }
 
@@ -384,20 +332,12 @@
             const recentList = document.getElementById('recent-list');
             recentList.innerHTML = purchases.slice(0, 5).map(p => `
                 <div class="bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center card-shadow">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">
-                            ${p.supplier.charAt(0)}
-                        </div>
-                        <div>
-                            <p class="font-bold text-gray-900">${p.supplier}</p>
-                            <p class="text-xs text-gray-400">${p.date} • ${p.category}</p>
-                        </div>
+                    <div>
+                        <p class="font-bold text-gray-900">${p.supplier}</p>
+                        <p class="text-xs text-gray-400">${p.date} • ${p.category}</p>
                     </div>
                     <div class="text-right">
                         <p class="font-black text-gray-900">₹${p.total.toLocaleString()}</p>
-                        <p class="text-[10px] font-bold ${p.total-p.paid > 0 ? 'text-red-500':'text-green-500'}">
-                            ${p.total-p.paid > 0 ? '₹' + (p.total-p.paid).toLocaleString() + ' DUE' : 'PAID'}
-                        </p>
                     </div>
                 </div>
             `).join('');
@@ -406,71 +346,57 @@
             purchases.forEach(p => { debts[p.supplier] = (debts[p.supplier] || 0) + (p.total - p.paid); });
             const topDebts = Object.entries(debts).filter(d => d[1] > 0).sort((a,b) => b[1]-a[1]).slice(0,5);
             
-            const debtList = document.getElementById('debtor-list');
-            debtList.innerHTML = topDebts.length ? topDebts.map(([n, v]) => `
-                <div class="flex justify-between items-center py-1">
-                    <span class="text-sm font-bold text-gray-600 truncate mr-2">${n}</span>
+            document.getElementById('debtor-list').innerHTML = topDebts.map(([n, v]) => `
+                <div class="flex justify-between items-center py-1 border-b border-gray-50 pb-2 last:border-0">
+                    <span class="text-sm font-bold text-gray-600 truncate">${n}</span>
                     <span class="text-sm font-black text-red-500">₹${v.toLocaleString()}</span>
                 </div>
-            `).join('') : '<p class="text-xs text-center text-gray-300 py-4 font-bold">ALL DUES CLEARED</p>';
+            `).join('') || '<p class="text-xs text-center text-gray-300 py-4 font-bold">No Pending Dues</p>';
         }
 
         function renderHistory() {
             const table = document.getElementById('history-table');
-            const empty = document.getElementById('empty-state');
-            table.innerHTML = '';
-            
-            if (!purchases.length) { empty.classList.remove('hidden'); return; }
-            empty.classList.add('hidden');
-
-            purchases.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
+            table.innerHTML = purchases.map(p => `
+                <tr class="hover:bg-gray-50">
                     <td class="p-6 font-mono text-[11px] text-gray-400">${p.date}</td>
                     <td class="p-6 font-bold text-gray-900">${p.supplier}</td>
                     <td class="p-6 text-right font-black">₹${p.total.toLocaleString()}</td>
-                    <td class="p-6 text-right font-bold ${p.total-p.paid > 0 ? 'text-red-500':'text-green-500'}">₹${(p.total-p.paid).toLocaleString()}</td>
                     <td class="p-6 text-center">
                         <button onclick="deleteRecord('${p.id}')" class="text-gray-300 hover:text-red-500 transition-colors">
                             <i class="ph ph-trash"></i>
                         </button>
                     </td>
-                `;
-                table.appendChild(tr);
-            });
+                </tr>
+            `).join('');
         }
 
         async function deleteRecord(id) {
-            if(!confirm("Delete this bill from archives?")) return;
-            const ctx = window.firebaseCtx;
-            await ctx.deleteDoc(ctx.doc(ctx.db, 'artifacts', ctx.appId, 'users', window.currentUser.uid, 'grocery_purchases', id));
-            showToast("Record Removed");
+            if(!confirm("Delete this bill?")) return;
+            const user = window.auth?.currentUser;
+            if(!user) return;
+            const tools = window.firestoreTools;
+            await tools.deleteDoc(tools.doc(window.db, 'artifacts', window.appId, 'users', user.uid, 'grocery_purchases', id));
+            showToast("Deleted");
         }
 
         function renderAnalytics() {
-            if (!purchases.length) return;
             const timeline = {};
             purchases.forEach(p => {
-                const key = currentTF === 'month' ? p.date.substring(0, 7) : p.date.substring(0, 4);
+                const key = p.date.substring(0, 7);
                 timeline[key] = (timeline[key] || 0) + p.total;
             });
-            const sortedTimeline = Object.keys(timeline).sort();
-            const ctxTrend = document.getElementById('trendChart').getContext('2d');
-            if (charts.trend) charts.trend.destroy();
-            charts.trend = new Chart(ctxTrend, {
+            const labels = Object.keys(timeline).sort();
+            const data = labels.map(k => timeline[k]);
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: sortedTimeline,
-                    datasets: [{
-                        label: 'Spend',
-                        data: sortedTimeline.map(k => timeline[k]),
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                        fill: true,
-                        tension: 0.4
-                    }]
+                    labels: labels,
+                    datasets: [{ label: 'Procurement', data: data, borderColor: '#3b82f6', tension: 0.3 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
@@ -490,15 +416,6 @@
             document.getElementById('toast-msg').innerText = m;
             t.classList.remove('translate-x-[200%]');
             setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
-        }
-
-        function exportCSV() {
-            let csv = "Date,Supplier,Category,Total,Paid,Balance\n";
-            purchases.forEach(p => csv += `${p.date},"${p.supplier}","${p.category}",${p.total},${p.paid},${p.total-p.paid}\n`);
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `Procurement_Data.csv`; a.click();
         }
 
         document.getElementById('p-total').oninput = updateBalanceDisplay;
