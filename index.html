@@ -35,7 +35,7 @@
             <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all">
                 <i class="ph ph-squares-four text-xl"></i> Dashboard
             </button>
-            <button onclick="switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
+            <button onclick="prepareNewEntry(); switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
                 <i class="ph ph-plus-circle text-xl"></i> New Entry
             </button>
             <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
@@ -93,15 +93,21 @@
             </div>
         </div>
 
-        <!-- NEW ENTRY -->
+        <!-- NEW ENTRY / EDIT ENTRY -->
         <div id="purchase" class="tab-content max-w-2xl mx-auto">
-            <h2 class="text-3xl font-extrabold mb-8">Record Inventory</h2>
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-extrabold" id="form-title">Record Inventory</h2>
+                <button onclick="prepareNewEntry()" id="cancel-edit" class="hidden text-xs font-bold text-red-500 uppercase">Cancel Edit</button>
+            </div>
             <form id="purchase-form" onsubmit="event.preventDefault(); handlePurchaseSubmit();" class="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 space-y-6">
+                <input type="hidden" id="p-id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-1">
                         <label class="text-[10px] font-black uppercase text-slate-400">Supplier Name</label>
-                        <input type="text" id="p-supplier" list="supplier-list" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold focus:ring-2 ring-blue-500" placeholder="e.g. Rice Mill" required>
-                        <datalist id="supplier-list"></datalist>
+                        <div class="relative">
+                            <input type="text" id="p-supplier" list="supplier-list" class="w-full px-5 py-3 bg-slate-50 rounded-xl outline-none font-bold focus:ring-2 ring-blue-500" placeholder="Select or type new..." required>
+                            <datalist id="supplier-list"></datalist>
+                        </div>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-black uppercase text-slate-400">Category</label>
@@ -131,7 +137,7 @@
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl transition-all">
+                <button type="submit" id="submit-btn" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl transition-all">
                     Secure Entry
                 </button>
             </form>
@@ -139,6 +145,7 @@
 
         <!-- ANALYTICS -->
         <div id="analytics" class="tab-content max-w-6xl mx-auto space-y-8 pb-20">
+            <!-- Same Analytics Header as before... -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-extrabold tracking-tight">Smart Intelligence</h2>
@@ -219,7 +226,7 @@
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-extrabold">Data Management</h2>
-                    <p class="text-slate-500">History, Exports, and Backups.</p>
+                    <p class="text-slate-500">History, Filtered Reports, and Backups.</p>
                 </div>
                 <div class="flex gap-3">
                     <button onclick="exportToCSV()" class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-200">
@@ -230,6 +237,48 @@
                     </button>
                 </div>
             </header>
+
+            <!-- DYNAMIC FILTER BAR -->
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-4">
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Custom Report Filters</p>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500">Start Date</label>
+                        <input type="date" id="filter-start" onchange="renderHistory()" class="w-full px-4 py-2 bg-slate-50 rounded-lg outline-none font-bold text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500">End Date</label>
+                        <input type="date" id="filter-end" onchange="renderHistory()" class="w-full px-4 py-2 bg-slate-50 rounded-lg outline-none font-bold text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500">Search Supplier</label>
+                        <input type="text" id="filter-supplier" oninput="renderHistory()" placeholder="All Suppliers" class="w-full px-4 py-2 bg-slate-50 rounded-lg outline-none font-bold text-sm">
+                    </div>
+                    <button onclick="resetFilters()" class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-bold text-xs uppercase hover:bg-slate-200">
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- FILTER SUMMARY BAR -->
+            <div id="filter-summary" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl">
+                    <p class="text-[9px] font-black text-blue-400 uppercase">Filtered Total Bill</p>
+                    <h5 id="sum-bill" class="text-lg font-black text-blue-700">₹0</h5>
+                </div>
+                <div class="bg-green-50 border border-green-100 p-4 rounded-2xl">
+                    <p class="text-[9px] font-black text-green-400 uppercase">Filtered Total Paid</p>
+                    <h5 id="sum-paid" class="text-lg font-black text-green-700">₹0</h5>
+                </div>
+                <div class="bg-orange-50 border border-orange-100 p-4 rounded-2xl">
+                    <p class="text-[9px] font-black text-orange-400 uppercase">Filtered Balance</p>
+                    <h5 id="sum-balance" class="text-lg font-black text-orange-700">₹0</h5>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Record Count</p>
+                    <h5 id="sum-count" class="text-lg font-black text-slate-700">0</h5>
+                </div>
+            </div>
 
             <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
                 <table class="w-full text-left">
@@ -291,10 +340,40 @@
             renderAnalytics();
         }
 
+        function prepareNewEntry() {
+            const form = document.getElementById('purchase-form');
+            form.reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('form-title').innerText = "Record Inventory";
+            document.getElementById('submit-btn').innerText = "Secure Entry";
+            document.getElementById('cancel-edit').classList.add('hidden');
+            document.getElementById('p-date').valueAsDate = new Date();
+        }
+
+        function editRecord(id) {
+            const record = purchases.find(p => p.id === id);
+            if (!record) return;
+
+            switchTab('purchase');
+            document.getElementById('form-title').innerText = "Edit Record";
+            document.getElementById('submit-btn').innerText = "Update Entry";
+            document.getElementById('cancel-edit').classList.remove('hidden');
+
+            document.getElementById('p-id').value = record.id;
+            document.getElementById('p-supplier').value = record.supplier;
+            document.getElementById('p-category').value = record.category;
+            document.getElementById('p-date').value = record.date;
+            document.getElementById('p-total').value = record.total;
+            document.getElementById('p-paid').value = record.paid;
+            document.getElementById('p-mode').value = record.mode;
+        }
+
         function handlePurchaseSubmit() {
             const form = document.getElementById('purchase-form');
+            const id = document.getElementById('p-id').value;
+            
             const entry = {
-                id: crypto.randomUUID(),
+                id: id || crypto.randomUUID(),
                 supplier: document.getElementById('p-supplier').value.trim(),
                 category: document.getElementById('p-category').value,
                 date: document.getElementById('p-date').value,
@@ -303,18 +382,34 @@
                 mode: document.getElementById('p-mode').value,
                 ts: new Date(document.getElementById('p-date').value).getTime()
             };
+
             if(!entry.supplier || !entry.total) return;
-            purchases.unshift(entry);
+
+            if (id) {
+                const index = purchases.findIndex(p => p.id === id);
+                if (index !== -1) purchases[index] = entry;
+                showToast("Record Updated");
+            } else {
+                purchases.unshift(entry);
+                showToast("Transaction Recorded");
+            }
+
             saveData();
-            showToast("Transaction Recorded");
-            form.reset();
-            document.getElementById('p-date').valueAsDate = new Date();
+            prepareNewEntry();
         }
 
         function deleteRecord(id) {
+            if(!confirm("Are you sure you want to delete this record?")) return;
             purchases = purchases.filter(p => p.id !== id);
             saveData();
             showToast("Record Removed", "ph-trash");
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-start').value = '';
+            document.getElementById('filter-end').value = '';
+            document.getElementById('filter-supplier').value = '';
+            renderHistory();
         }
 
         function updateDatalists() {
@@ -334,11 +429,9 @@
             document.getElementById('dash-total').innerText = `₹${totalSpent.toLocaleString()}`;
             document.getElementById('dash-dues').innerText = `₹${totalDue.toLocaleString()}`;
 
-            // Predictions
             const velocity = calculateDailyVelocity();
             document.getElementById('dash-week-forecast').innerText = `₹${Math.round(velocity * 7).toLocaleString()}`;
 
-            // Top Suppliers
             const sMap = {}; purchases.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + p.total);
             const topS = Object.entries(sMap).sort((a,b) => b[1]-a[1]).slice(0, 3);
             document.getElementById('dash-top-suppliers').innerHTML = topS.map(s => `
@@ -357,33 +450,70 @@
             return total / rangeDays;
         }
 
+        function renderHistory() {
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            const supQuery = document.getElementById('filter-supplier').value.toLowerCase();
+
+            const isFiltering = start || end || supQuery;
+            const summaryBar = document.getElementById('filter-summary');
+
+            const filtered = purchases.filter(p => {
+                const dateMatch = (!start || p.date >= start) && (!end || p.date <= end);
+                const supMatch = !supQuery || p.supplier.toLowerCase().includes(supQuery);
+                return dateMatch && supMatch;
+            });
+
+            // Update Summary Bar
+            if (isFiltering) {
+                summaryBar.classList.remove('hidden');
+                summaryBar.classList.add('grid');
+                const tBill = filtered.reduce((a,b) => a + b.total, 0);
+                const tPaid = filtered.reduce((a,b) => a + b.paid, 0);
+                document.getElementById('sum-bill').innerText = `₹${tBill.toLocaleString()}`;
+                document.getElementById('sum-paid').innerText = `₹${tPaid.toLocaleString()}`;
+                document.getElementById('sum-balance').innerText = `₹${(tBill - tPaid).toLocaleString()}`;
+                document.getElementById('sum-count').innerText = filtered.length;
+            } else {
+                summaryBar.classList.add('hidden');
+                summaryBar.classList.remove('grid');
+            }
+
+            document.getElementById('history-table').innerHTML = filtered.map(p => `
+                <tr class="hover:bg-slate-50 transition-colors group">
+                    <td class="p-5 font-mono text-[11px] text-slate-400">${p.date}</td>
+                    <td class="p-5 font-bold text-sm">${p.supplier}</td>
+                    <td class="p-5 font-medium text-[10px] text-slate-500 uppercase">${p.category}</td>
+                    <td class="p-5 text-right font-black">₹${p.total.toLocaleString()}</td>
+                    <td class="p-5 text-center flex items-center justify-center gap-4">
+                        <button onclick="editRecord('${p.id}')" title="Edit" class="text-slate-300 hover:text-blue-600 transition-colors"><i class="ph ph-pencil-simple text-lg"></i></button>
+                        <button onclick="deleteRecord('${p.id}')" title="Delete" class="text-slate-300 hover:text-red-500 transition-colors"><i class="ph ph-trash text-lg"></i></button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" class="p-10 text-center text-slate-400 font-bold italic">No records found for these filters.</td></tr>';
+        }
+
         function renderAnalytics() {
             if (!purchases.length) return;
-
             const filterVendor = document.getElementById('supplier-chart-filter').value;
             const filtered = filterVendor === 'all' ? purchases : purchases.filter(p => p.supplier === filterVendor);
 
-            // Time grouping logic
             const groups = {};
             filtered.forEach(p => {
                 let key;
                 const d = new Date(p.date);
-                if (currentTimeframe === 'day') {
-                    key = p.date;
-                } else if (currentTimeframe === 'week') {
+                if (currentTimeframe === 'day') key = p.date;
+                else if (currentTimeframe === 'week') {
                     const startOfYear = new Date(d.getFullYear(), 0, 1);
                     const week = Math.ceil((((d - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
                     key = `${d.getFullYear()}-W${week}`;
-                } else {
-                    key = p.date.substring(0, 7);
-                }
+                } else key = p.date.substring(0, 7);
                 groups[key] = (groups[key] || 0) + p.total;
             });
 
             const sortedKeys = Object.keys(groups).sort().slice(-15);
             const data = sortedKeys.map(k => groups[k]);
 
-            // Charts
             if(charts.main) charts.main.destroy();
             charts.main = new Chart(document.getElementById('mainChart'), {
                 type: 'line',
@@ -402,7 +532,6 @@
                 options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // Supplier Donut
             const sMap = {}; purchases.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + p.total);
             if(charts.sup) charts.sup.destroy();
             charts.sup = new Chart(document.getElementById('supplierChart'), {
@@ -414,7 +543,6 @@
                 options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
             });
 
-            // Forecaster Logic
             const dailyVel = calculateDailyVelocity();
             document.getElementById('predict-day').innerText = `₹${Math.round(dailyVel).toLocaleString()}`;
             document.getElementById('predict-week').innerText = `₹${Math.round(dailyVel * 7).toLocaleString()}`;
@@ -435,7 +563,6 @@
                 const avg = logs.reduce((a,b) => a+b.total, 0) / logs.length;
                 const earliest = Math.min(...logs.map(l => l.ts));
                 const cycle = Math.round((Date.now() - earliest) / (86400000 * logs.length)) || 1;
-                
                 return `
                     <tr>
                         <td class="py-4 font-bold text-sm">${name}</td>
@@ -447,31 +574,27 @@
             }).join('');
         }
 
-        function renderHistory() {
-            document.getElementById('history-table').innerHTML = purchases.map(p => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-5 font-mono text-[11px] text-slate-400">${p.date}</td>
-                    <td class="p-5 font-bold text-sm">${p.supplier}</td>
-                    <td class="p-5 font-medium text-[10px] text-slate-500 uppercase">${p.category}</td>
-                    <td class="p-5 text-right font-black">₹${p.total.toLocaleString()}</td>
-                    <td class="p-5 text-center">
-                        <button onclick="deleteRecord('${p.id}')" class="text-slate-300 hover:text-red-500"><i class="ph ph-trash text-lg"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
         function exportToCSV() {
-            if(!purchases.length) return showToast("No data to export", "ph-warning");
-            const headers = "Date,Supplier,Category,Total,Paid,Mode\n";
-            const rows = purchases.map(p => `${p.date},${p.supplier},${p.category},${p.total},${p.paid},${p.mode}`).join("\n");
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            const supQuery = document.getElementById('filter-supplier').value.toLowerCase();
+
+            const filtered = purchases.filter(p => {
+                const dateMatch = (!start || p.date >= start) && (!end || p.date <= end);
+                const supMatch = !supQuery || p.supplier.toLowerCase().includes(supQuery);
+                return dateMatch && supMatch;
+            });
+
+            if(!filtered.length) return showToast("No data to export", "ph-warning");
+            const headers = "Date,Supplier,Category,TotalBill,AmountPaid,PaymentMode\n";
+            const rows = filtered.map(p => `${p.date},${p.supplier},${p.category},${p.total},${p.paid},${p.mode}`).join("\n");
             const blob = new Blob([headers + rows], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.setAttribute('href', url);
-            a.setAttribute('download', `OilMurugan_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            a.setAttribute('download', `OilMurugan_Report_${new Date().toISOString().split('T')[0]}.csv`);
             a.click();
-            showToast("CSV Exported Successfully");
+            showToast("Report Exported Successfully");
         }
 
         function simulateBackup() {
