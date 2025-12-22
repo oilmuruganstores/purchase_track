@@ -1,239 +1,880 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Oil Murugan Stores | Ledger</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oil Murugan Stores | Purchase Manager</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
-  background:linear-gradient(180deg,#f5f7fa,#e4e8ee);
-  color:#111;
-}
-.app{max-width:1400px;margin:auto;padding:28px}
+    <!-- Google Fonts: Inter for Apple-like typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-/* HEADER */
-.header{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:24px
-}
-.header h1{margin:0;font-weight:700}
-.header span{color:#666}
+    <!-- Icons (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-/* TABS */
-.tabs{display:flex;gap:10px;margin-bottom:20px}
-.tab{
-  padding:10px 18px;border-radius:999px;
-  background:#fff;border:1px solid #ddd;
-  cursor:pointer;font-weight:600
-}
-.tab.active{
-  background:#111;color:#fff
-}
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        ios: {
+                            bg: '#F2F2F7',
+                            card: '#FFFFFF',
+                            blue: '#007AFF',
+                            green: '#34C759',
+                            red: '#FF3B30',
+                            gray: '#8E8E93',
+                            separator: '#C6C6C8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-/* PANELS */
-.panel{display:none}
-.panel.active{display:block}
-
-/* CARDS */
-.card{
-  background:#fff;border-radius:18px;padding:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
-  margin-bottom:20px
-}
-
-/* FORM */
-.form{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px
-}
-input,select,button{
-  padding:12px 14px;border-radius:12px;border:1px solid #ddd;
-  font-size:14px
-}
-button{
-  background:#111;color:#fff;font-weight:700;border:none;cursor:pointer
-}
-
-/* TABLE */
-table{width:100%;border-collapse:collapse}
-th{
-  text-align:left;padding:14px;border-bottom:1px solid #eee;
-  color:#666;font-size:13px
-}
-td{padding:14px;border-bottom:1px solid #f1f1f1}
-tr:hover{background:#fafafa}
-
-/* STATUS */
-.green{color:#0f766e;font-weight:700}
-.red{color:#b91c1c;font-weight:700}
-
-/* LEDGER */
-.ledger-row{display:flex;justify-content:space-between;padding:10px 0}
-
-/* INSIGHTS */
-.insight{padding:10px 0;font-weight:600}
-</style>
+    <style>
+        body { background-color: #F2F2F7; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Scrollbar for tables */
+        .scroller::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scroller::-webkit-scrollbar-thumb { background: #C6C6C8; border-radius: 4px; }
+        .scroller::-webkit-scrollbar-track { background: transparent; }
+    </style>
 </head>
+<body class="text-gray-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden">
 
-<body>
-<div class="app">
+    <!-- Sidebar / Navigation -->
+    <aside class="bg-white/80 backdrop-blur-md border-r border-ios-separator w-full md:w-64 flex-shrink-0 flex flex-col justify-between z-20 shadow-sm">
+        <div>
+            <div class="p-6 border-b border-ios-separator/50">
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">OIL MURUGAN <br><span class="text-ios-blue font-medium text-sm">STORES</span></h1>
+                <p class="text-xs text-gray-500 mt-1">Purchase Manager</p>
+            </div>
+            
+            <nav class="p-4 space-y-1">
+                <button onclick="switchTab('today')" id="nav-today" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-white bg-ios-blue shadow-sm transition-all">
+                    <i class="ph ph-plus-circle text-lg"></i> Today's Entry
+                </button>
+                <button onclick="switchTab('history')" id="nav-history" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100 transition-all">
+                    <i class="ph ph-clock-counter-clockwise text-lg"></i> History
+                </button>
+                <button onclick="switchTab('supplier')" id="nav-supplier" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100 transition-all">
+                    <i class="ph ph-address-book text-lg"></i> Supplier View
+                </button>
+                <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100 transition-all">
+                    <i class="ph ph-chart-line-up text-lg"></i> Analytics
+                </button>
+                <button onclick="switchTab('forecast')" id="nav-forecast" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-600 hover:bg-gray-100 transition-all">
+                    <i class="ph ph-lightbulb text-lg"></i> Forecast & Insights
+                </button>
+                
+                <!-- Export Button -->
+                <div class="pt-4 mt-4 border-t border-gray-100">
+                    <button onclick="exportToCSV()" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-green-700 bg-green-50 hover:bg-green-100 transition-all border border-green-200">
+                        <i class="ph ph-download-simple text-lg"></i> Export CSV
+                    </button>
+                </div>
+            </nav>
+        </div>
+        <div class="p-4 text-xs text-center text-gray-400">
+            v1.3 • Offline Mode Active
+        </div>
+    </aside>
 
-<div class="header">
-  <h1>Oil Murugan Stores</h1>
-  <span>Purchase & Ledger System</span>
-</div>
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto scroller p-4 md:p-8 relative">
+        
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex items-center gap-2">
+            <i class="ph ph-check-circle text-green-400 text-xl"></i>
+            <span id="toast-msg">Action Successful</span>
+        </div>
 
-<div class="tabs">
-  <div class="tab active" onclick="openTab('today')">Today</div>
-  <div class="tab" onclick="openTab('ledger')">Supplier Ledger</div>
-  <div class="tab" onclick="openTab('audit')">Audit Log</div>
-  <div class="tab" onclick="openTab('insights')">Insights</div>
-</div>
+        <!-- TAB: TODAY -->
+        <div id="today" class="tab-content active max-w-5xl mx-auto">
+            <header class="mb-8 flex justify-between items-end">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900">Today's Purchase</h2>
+                    <p class="text-gray-500 text-sm mt-1" id="current-date-display">loading...</p>
+                </div>
+                <div class="hidden md:block bg-white px-4 py-2 rounded-lg shadow-sm text-sm border border-gray-100">
+                    <span class="text-gray-400">Status:</span> <span class="text-green-600 font-semibold">● Saving Locally</span>
+                </div>
+            </header>
 
-<!-- TODAY -->
-<div id="today" class="panel active">
+            <!-- Dashboard Summary Cards (Today) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Purchase</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mt-2" id="dash-today-total">₹0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Paid Amount</p>
+                    <h3 class="text-2xl font-bold text-ios-green mt-2" id="dash-today-paid">₹0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pending Balance</p>
+                    <h3 class="text-2xl font-bold text-ios-red mt-2" id="dash-today-pending">₹0</h3>
+                </div>
+            </div>
 
-<div class="card">
-  <div class="form">
-    <input id="supplier" placeholder="Supplier">
-    <input id="bill" type="number" placeholder="Bill">
-    <input id="cash" type="number" placeholder="Cash" value="0">
-    <input id="upi" type="number" placeholder="UPI" value="0">
-    <input id="net" type="number" placeholder="Net Banking" value="0">
-    <button onclick="addPurchase()">Add Purchase</button>
-  </div>
-</div>
+            <!-- Entry Form -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+                <h3 class="text-lg font-semibold mb-6 border-b pb-4 border-gray-100">New Entry</h3>
+                <form id="entry-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Supplier -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
+                            <div class="relative">
+                                <input type="text" id="inp-supplier" list="supplier-list" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ios-blue focus:ring-2 focus:ring-ios-blue/20 outline-none transition-all bg-gray-50 focus:bg-white" placeholder="e.g. Aavin Milk" required autocomplete="off">
+                                <datalist id="supplier-list"></datalist>
+                                <div class="absolute right-3 top-3 text-gray-400">
+                                    <i class="ph ph-magnifying-glass text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
 
-<div class="card">
-<table>
-<thead>
-<tr><th>Supplier</th><th>Bill</th><th>Paid</th><th>Pending</th></tr>
-</thead>
-<tbody id="todayRows"></tbody>
-</table>
-</div>
+                        <!-- Bill Amount -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Total Bill Amount (₹)</label>
+                            <input type="number" id="inp-bill" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-ios-blue focus:ring-2 focus:ring-ios-blue/20 outline-none transition-all bg-gray-50 focus:bg-white font-mono text-lg" placeholder="0.00" required step="0.01">
+                        </div>
+                    </div>
 
-</div>
+                    <!-- Payment Split -->
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <label class="block text-sm font-semibold text-gray-700 mb-4">Payment Breakdown</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500 mb-1 block">Cash</label>
+                                <input type="number" id="inp-cash" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-1 focus:ring-ios-blue outline-none" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 mb-1 block">UPI (GPay/PhonePe)</label>
+                                <input type="number" id="inp-upi" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-1 focus:ring-ios-blue outline-none" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 mb-1 block">Net Banking</label>
+                                <input type="number" id="inp-net" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-1 focus:ring-ios-blue outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Auto-calculated Pending:</span>
+                            <span class="font-bold text-ios-red text-lg" id="calc-pending">₹0</span>
+                        </div>
+                    </div>
 
-<!-- LEDGER -->
-<div id="ledger" class="panel">
-<div class="card">
-  <select id="ledgerSupplier" onchange="renderLedger()"></select>
-  <div id="ledgerView"></div>
-</div>
-</div>
+                    <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white font-medium py-4 rounded-xl shadow-lg shadow-gray-200 transition-all transform active:scale-95 flex justify-center items-center gap-2">
+                        <i class="ph ph-check-bold"></i> Save Purchase
+                    </button>
+                </form>
+            </div>
+        </div>
 
-<!-- AUDIT -->
-<div id="audit" class="panel">
-<div class="card">
-<table>
-<thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead>
-<tbody id="auditRows"></tbody>
-</table>
-</div>
-</div>
+        <!-- TAB: HISTORY -->
+        <div id="history" class="tab-content max-w-6xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Purchase History</h2>
+            </header>
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <!-- Filters -->
+                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex gap-4 items-center w-full md:w-auto">
+                        <input type="text" id="hist-search" placeholder="Search Supplier..." class="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-ios-blue outline-none w-full md:w-64">
+                        <input type="date" id="hist-date-start" class="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none">
+                        <span class="text-gray-400">-</span>
+                        <input type="date" id="hist-date-end" class="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none">
+                    </div>
+                    <button onclick="renderHistory()" class="px-4 py-2 bg-ios-blue text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors">Apply Filter</button>
+                </div>
 
-<!-- INSIGHTS -->
-<div id="insights" class="panel">
-<div class="card" id="insightBox"></div>
-</div>
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                                <th class="p-4 font-medium">Date</th>
+                                <th class="p-4 font-medium">Supplier</th>
+                                <th class="p-4 font-medium text-right">Bill Amt</th>
+                                <th class="p-4 font-medium text-right text-green-600">Paid</th>
+                                <th class="p-4 font-medium text-right text-red-500">Pending</th>
+                                <th class="p-4 font-medium text-center">Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="text-sm text-gray-700">
+                            <!-- Rows generated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination / Empty State -->
+                <div id="history-empty" class="hidden p-8 text-center text-gray-400">
+                    <i class="ph ph-files text-4xl mb-2"></i>
+                    <p>No records found for this period.</p>
+                </div>
+            </div>
+        </div>
 
-</div>
+        <!-- TAB: SUPPLIER VIEW -->
+        <div id="supplier" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Supplier Ledger</h2>
+                <p class="text-gray-500 text-sm">View accounts like a Tally ledger.</p>
+            </header>
 
-<script>
-const today=new Date().toISOString().split("T")[0];
-let data=JSON.parse(localStorage.getItem("oms_data"))||[];
-let audit=JSON.parse(localStorage.getItem("oms_audit"))||[];
-let opening=JSON.parse(localStorage.getItem("oms_opening"))||{};
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Select Supplier -->
+                <div class="w-full md:w-1/3">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Select Supplier</label>
+                        <select id="ledger-select" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-ios-blue/20" onchange="renderSupplierLedger()">
+                            <option value="">-- Choose --</option>
+                        </select>
+                        
+                        <div id="ledger-summary" class="mt-8 hidden">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                                    <span class="text-gray-500 text-sm">Total Purchased</span>
+                                    <span class="font-bold text-gray-900" id="led-total-bill">₹0</span>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-dashed border-gray-200 pb-2">
+                                    <span class="text-gray-500 text-sm">Total Paid</span>
+                                    <span class="font-bold text-green-600" id="led-total-paid">₹0</span>
+                                </div>
+                                <div class="p-4 bg-red-50 rounded-xl flex justify-between items-center">
+                                    <span class="text-red-600 font-medium text-sm">Outstanding Balance</span>
+                                    <span class="font-bold text-red-700 text-xl" id="led-balance">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-function paid(e){return (e.cash||0)+(e.upi||0)+(e.net||0)}
-function save(){
- localStorage.setItem("oms_data",JSON.stringify(data));
- localStorage.setItem("oms_audit",JSON.stringify(audit));
- localStorage.setItem("oms_opening",JSON.stringify(opening));
-}
+                <!-- Ledger Table -->
+                <div class="w-full md:w-2/3">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px] relative">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                                    <tr>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3 text-right">Debit (Bill)</th>
+                                        <th class="p-3 text-right">Credit (Paid)</th>
+                                        <th class="p-3 text-right">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ledger-body" class="text-sm"></tbody>
+                            </table>
+                        </div>
+                        <div id="ledger-empty" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                            <i class="ph ph-user-list text-4xl mb-2"></i>
+                            <p>Select a supplier to view ledger</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-function addPurchase(){
- let e={
-  supplier:supplier.value.trim(),
-  bill:+bill.value,
-  cash:+cash.value,
-  upi:+upi.value,
-  net:+net.value,
-  date:today
- };
- if(!e.supplier||!e.bill) return;
- data.push(e);
- audit.push({time:new Date().toLocaleString(),action:"ADD",detail:e.supplier+" bill "+e.bill});
- supplier.value=bill.value="";
- cash.value=upi.value=net.value=0;
- save();render();
-}
+        <!-- TAB: ANALYTICS -->
+        <div id="analytics" class="tab-content max-w-6xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Spending Analytics</h2>
+            </header>
 
-function render(){
- todayRows.innerHTML="";
- let supSet=new Set();
- data.forEach(e=>{
-  supSet.add(e.supplier);
-  let p=paid(e),pend=e.bill-p;
-  todayRows.innerHTML+=`
-  <tr>
-   <td>${e.supplier}</td>
-   <td>${e.bill}</td>
-   <td>${p}</td>
-   <td class="${pend>0?'red':'green'}">${pend}</td>
-  </tr>`;
- });
- ledgerSupplier.innerHTML="";
- [...supSet].forEach(s=>ledgerSupplier.innerHTML+=`<option>${s}</option>`);
- renderLedger();
- renderAudit();
- renderInsights();
-}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Trend Chart -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">Last 7 Days Spending</h4>
+                    <canvas id="chartTrend"></canvas>
+                </div>
+                
+                <!-- Mode Chart -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">Payment Mode Split</h4>
+                    <div class="h-64 flex justify-center">
+                        <canvas id="chartMode"></canvas>
+                    </div>
+                </div>
+            </div>
 
-function renderLedger(){
- let s=ledgerSupplier.value;
- if(!s) return;
- let bal=opening[s]||0;
- let html=`<div class="ledger-row"><b>Opening Balance</b><b>${bal}</b></div>`;
- data.filter(e=>e.supplier===s).forEach(e=>{
-  bal+=e.bill-paid(e);
-  html+=`<div class="ledger-row">
-   <span>${e.date}</span>
-   <span>${bal}</span>
-  </div>`;
- });
- ledgerView.innerHTML=html;
-}
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 uppercase">Avg Daily Spend</p>
+                    <p class="text-xl font-bold text-gray-900 mt-1" id="an-avg-daily">₹0</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 uppercase">Highest Bill</p>
+                    <p class="text-xl font-bold text-gray-900 mt-1" id="an-highest">₹0</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 uppercase">Top Supplier</p>
+                    <p class="text-lg font-bold text-gray-900 mt-1 truncate" id="an-top-sup">-</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 uppercase">Cash Usage</p>
+                    <p class="text-xl font-bold text-gray-900 mt-1" id="an-cash-pct">0%</p>
+                </div>
+            </div>
+        </div>
 
-function renderAudit(){
- auditRows.innerHTML="";
- audit.slice().reverse().forEach(a=>{
-  auditRows.innerHTML+=`
-  <tr><td>${a.time}</td><td>${a.action}</td><td>${a.detail}</td></tr>`;
- });
-}
+        <!-- TAB: FORECAST -->
+        <div id="forecast" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Forecast & Insights</h2>
+                <p class="text-gray-500 text-sm">AI-driven predictions based on your history.</p>
+            </header>
 
-function renderInsights(){
- let total=data.reduce((s,e)=>s+e.bill,0);
- let avg=Math.round(total/(data.length||1));
- insightBox.innerHTML=`
- <div class="insight">📊 Avg Bill: Rs. ${avg}</div>
- <div class="insight">⚠️ High activity suppliers detected</div>
- <div class="insight">💡 Consider shifting cash to UPI</div>`;
-}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Predictions -->
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-6 rounded-2xl text-white shadow-lg">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-blue-100 text-sm font-medium mb-1">Projected Spend Next Week</p>
+                                <h3 class="text-4xl font-bold tracking-tight" id="fc-next-week">₹0</h3>
+                            </div>
+                            <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                <i class="ph ph-trend-up text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-200 mt-4 opacity-80">Based on last 30 days average</p>
+                    </div>
 
-function openTab(id){
- document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
- document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- event.target.classList.add("active");
-}
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500 font-medium mb-1">Projected Spend Next Month</p>
+                        <h3 class="text-2xl font-bold text-gray-900" id="fc-next-month">₹0</h3>
+                    </div>
+                </div>
 
-render();
-</script>
+                <!-- Insights List -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="ph ph-sparkle text-yellow-500"></i> Smart Insights
+                    </h3>
+                    <ul class="space-y-4" id="insights-list">
+                        <!-- Populated by JS -->
+                        <li class="flex gap-3 text-sm text-gray-600">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-300 mt-1.5 flex-shrink-0"></span>
+                            Collecting more data to generate insights...
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
+    </main>
+
+    <script>
+        // ==========================================
+        // DATA LAYER & MIGRATION
+        // ==========================================
+        const STORAGE_KEY = 'oms_data';
+        let appData = [];
+
+        function initData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                try {
+                    let parsed = JSON.parse(raw);
+                    // MIGRATION LOGIC: Ensure new fields exist on old data
+                    appData = parsed.map(entry => ({
+                        id: entry.id || Date.now() + Math.random(),
+                        date: entry.date,
+                        time: entry.time || "00:00",
+                        supplier: entry.supplier,
+                        bill: parseFloat(entry.bill) || 0,
+                        cash: parseFloat(entry.cash) || 0,
+                        upi: parseFloat(entry.upi) || 0,
+                        net: parseFloat(entry.net) || 0, // New field support
+                        type: entry.type || 'purchase' // Future proofing
+                    }));
+                } catch (e) {
+                    console.error("Data corrupted, resetting", e);
+                    appData = [];
+                }
+            } else {
+                appData = [];
+            }
+            // Sort by date descending
+            appData.sort((a, b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
+            updateDatalist();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            updateDatalist();
+        }
+
+        function updateDatalist() {
+            const suppliers = [...new Set(appData.map(d => d.supplier))];
+            const datalist = document.getElementById('supplier-list');
+            datalist.innerHTML = suppliers.map(s => `<option value="${s}">`).join('');
+            
+            // Also update ledger select
+            const ledgerSel = document.getElementById('ledger-select');
+            const currentVal = ledgerSel.value;
+            ledgerSel.innerHTML = '<option value="">-- Choose --</option>' + 
+                suppliers.sort().map(s => `<option value="${s}">${s}</option>`).join('');
+            ledgerSel.value = currentVal;
+        }
+
+        function exportToCSV() {
+            if (!appData || appData.length === 0) {
+                showToast("No data to export");
+                return;
+            }
+
+            // CSV Header
+            let csvContent = "Date,Time,Supplier,Bill Amount,Cash,UPI,Net Banking,Total Paid,Pending,Type\n";
+
+            // CSV Rows
+            appData.forEach(row => {
+                const totalPaid = (row.cash || 0) + (row.upi || 0) + (row.net || 0);
+                const pending = (row.bill || 0) - totalPaid;
+                
+                // Escape quotes in supplier name to prevent CSV breaking
+                const cleanSupplier = row.supplier ? `"${row.supplier.replace(/"/g, '""')}"` : '""';
+
+                const line = [
+                    row.date,
+                    row.time,
+                    cleanSupplier,
+                    row.bill,
+                    row.cash || 0,
+                    row.upi || 0,
+                    row.net || 0,
+                    totalPaid,
+                    pending,
+                    row.type
+                ].join(",");
+                csvContent += line + "\n";
+            });
+
+            // Create Download Link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `OMS_Backup_${getTodayDateString()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Data Exported Successfully");
+        }
+
+        // ==========================================
+        // UI HELPERS
+        // ==========================================
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            const tm = document.getElementById('toast-msg');
+            tm.innerText = msg;
+            t.classList.remove('translate-x-full');
+            setTimeout(() => t.classList.add('translate-x-full'), 3000);
+        }
+
+        function switchTab(tabId) {
+            // Hide all
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-ios-blue', 'text-white', 'shadow-sm');
+                el.classList.remove('bg-green-50', 'text-green-700'); // Reset export button style specific check
+                el.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+
+            // Handle special case for export button (it doesn't have a content tab)
+            if(tabId === 'export') return;
+
+            // Show active
+            document.getElementById(tabId).classList.add('active');
+            const navBtn = document.getElementById('nav-' + tabId);
+            if(navBtn) {
+                navBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                navBtn.classList.add('bg-ios-blue', 'text-white', 'shadow-sm');
+            }
+
+            // Trigger specific renders
+            if (tabId === 'history') renderHistory();
+            if (tabId === 'today') renderTodayDashboard();
+            if (tabId === 'analytics') renderAnalytics();
+            if (tabId === 'forecast') renderForecast();
+        }
+
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num);
+        }
+
+        function getTodayDateString() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // ==========================================
+        // TAB: TODAY LOGIC
+        // ==========================================
+        const inpBill = document.getElementById('inp-bill');
+        const inpCash = document.getElementById('inp-cash');
+        const inpUpi = document.getElementById('inp-upi');
+        const inpNet = document.getElementById('inp-net');
+        const calcPending = document.getElementById('calc-pending');
+        const inpSupplier = document.getElementById('inp-supplier');
+
+        // Initial setup
+        document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        function calculatePending() {
+            const bill = parseFloat(inpBill.value) || 0;
+            const paid = (parseFloat(inpCash.value) || 0) + (parseFloat(inpUpi.value) || 0) + (parseFloat(inpNet.value) || 0);
+            const pending = bill - paid;
+            calcPending.innerText = formatCurrency(pending);
+            calcPending.className = pending > 0 ? "font-bold text-ios-red text-lg" : "font-bold text-ios-green text-lg";
+        }
+
+        [inpBill, inpCash, inpUpi, inpNet].forEach(el => el.addEventListener('input', calculatePending));
+
+        // Realtime Dashboard filtering
+        inpSupplier.addEventListener('input', renderTodayDashboard);
+
+        document.getElementById('entry-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bill = parseFloat(inpBill.value);
+            if (!bill || bill <= 0) return alert("Please enter valid bill amount");
+
+            const entry = {
+                id: Date.now(),
+                date: getTodayDateString(),
+                time: new Date().toLocaleTimeString('en-IN', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                supplier: inpSupplier.value.trim(),
+                bill: bill,
+                cash: parseFloat(inpCash.value) || 0,
+                upi: parseFloat(inpUpi.value) || 0,
+                net: parseFloat(inpNet.value) || 0,
+                type: 'purchase'
+            };
+
+            appData.unshift(entry); // Add to top
+            saveData();
+            showToast("Purchase Saved");
+            
+            // Reset form but keep supplier if user wants to add multiple for same
+            inpBill.value = ''; inpCash.value = ''; inpUpi.value = ''; inpNet.value = '';
+            calculatePending();
+            renderTodayDashboard();
+        });
+
+        function renderTodayDashboard() {
+            const todayStr = getTodayDateString();
+            const filterSup = inpSupplier.value.trim().toLowerCase();
+
+            // Filter data for today
+            let todayData = appData.filter(d => d.date === todayStr);
+
+            // If supplier typed, filter further
+            if (filterSup) {
+                todayData = todayData.filter(d => d.supplier.toLowerCase().includes(filterSup));
+            }
+
+            const total = todayData.reduce((acc, curr) => acc + curr.bill, 0);
+            const cash = todayData.reduce((acc, curr) => acc + curr.cash, 0);
+            const upi = todayData.reduce((acc, curr) => acc + curr.upi, 0);
+            const net = todayData.reduce((acc, curr) => acc + curr.net, 0);
+            const paid = cash + upi + net;
+            const pending = total - paid;
+
+            document.getElementById('dash-today-total').innerText = formatCurrency(total);
+            document.getElementById('dash-today-paid').innerText = formatCurrency(paid);
+            document.getElementById('dash-today-pending').innerText = formatCurrency(pending);
+        }
+
+        // ==========================================
+        // TAB: HISTORY LOGIC
+        // ==========================================
+        function renderHistory() {
+            const tbody = document.getElementById('history-table-body');
+            const search = document.getElementById('hist-search').value.toLowerCase();
+            const start = document.getElementById('hist-date-start').value;
+            const end = document.getElementById('hist-date-end').value;
+
+            tbody.innerHTML = '';
+            
+            const filtered = appData.filter(d => {
+                const matchName = d.supplier.toLowerCase().includes(search);
+                const matchDate = (!start || d.date >= start) && (!end || d.date <= end);
+                return matchName && matchDate;
+            });
+
+            if (filtered.length === 0) {
+                document.getElementById('history-empty').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('history-empty').classList.add('hidden');
+            }
+
+            filtered.forEach(d => {
+                const paid = d.cash + d.upi + d.net;
+                const pending = d.bill - paid;
+                
+                // Determine mode badges
+                let badges = [];
+                if(d.cash > 0) badges.push('<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded">Cash</span>');
+                if(d.upi > 0) badges.push('<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded">UPI</span>');
+                if(d.net > 0) badges.push('<span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded">Net</span>');
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-medium text-gray-900">${d.date}</div>
+                        <div class="text-xs text-gray-400">${d.time}</div>
+                    </td>
+                    <td class="p-4 font-medium">${d.supplier}</td>
+                    <td class="p-4 text-right">${formatCurrency(d.bill)}</td>
+                    <td class="p-4 text-right text-gray-500">${formatCurrency(paid)}</td>
+                    <td class="p-4 text-right font-bold ${pending > 0 ? 'text-red-500' : 'text-green-500'}">${formatCurrency(pending)}</td>
+                    <td class="p-4 text-center space-x-1">${badges.join('')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // TAB: SUPPLIER LEDGER LOGIC
+        // ==========================================
+        function renderSupplierLedger() {
+            const supplier = document.getElementById('ledger-select').value;
+            const summaryBox = document.getElementById('ledger-summary');
+            const tbody = document.getElementById('ledger-body');
+            const emptyState = document.getElementById('ledger-empty');
+
+            if (!supplier) {
+                summaryBox.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                tbody.innerHTML = '';
+                return;
+            }
+
+            summaryBox.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = '';
+
+            // Get transactions
+            const txns = appData.filter(d => d.supplier === supplier).reverse(); // Oldest first for ledger
+
+            let balance = 0;
+            let totalBill = 0;
+            let totalPaid = 0;
+
+            txns.forEach(d => {
+                const paid = d.cash + d.upi + d.net;
+                totalBill += d.bill;
+                totalPaid += paid;
+                
+                // Logic: Bill increases debt (Credit provider), Payment decreases debt.
+                // But simplified: Balance = Total Bill - Total Paid
+                // For row by row running balance:
+                balance = balance + d.bill - paid;
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-600">${d.date}</td>
+                    <td class="p-3 text-right text-gray-900 font-medium">${d.bill > 0 ? d.bill.toFixed(0) : '-'}</td>
+                    <td class="p-3 text-right text-green-600">${paid > 0 ? paid.toFixed(0) : '-'}</td>
+                    <td class="p-3 text-right font-bold text-gray-800">${balance.toFixed(0)}</td>
+                `;
+                tbody.prepend(tr); // Show newest on top in table, though calculation was bottom-up
+            });
+
+            document.getElementById('led-total-bill').innerText = formatCurrency(totalBill);
+            document.getElementById('led-total-paid').innerText = formatCurrency(totalPaid);
+            document.getElementById('led-balance').innerText = formatCurrency(totalBill - totalPaid);
+        }
+
+        // ==========================================
+        // TAB: ANALYTICS LOGIC (Chart.js)
+        // ==========================================
+        let trendChartInstance = null;
+        let modeChartInstance = null;
+
+        function renderAnalytics() {
+            // 1. Calculate Stats
+            const totalSpend = appData.reduce((a, b) => a + b.bill, 0);
+            const totalCash = appData.reduce((a, b) => a + b.cash, 0);
+            
+            // Daily Avg (Unique dates)
+            const uniqueDates = new Set(appData.map(d => d.date)).size || 1;
+            document.getElementById('an-avg-daily').innerText = formatCurrency(totalSpend / uniqueDates);
+            
+            // Highest Bill
+            const maxBill = Math.max(...appData.map(d => d.bill), 0);
+            document.getElementById('an-highest').innerText = formatCurrency(maxBill);
+
+            // Cash %
+            const cashPct = totalSpend > 0 ? Math.round((totalCash / totalSpend) * 100) : 0;
+            document.getElementById('an-cash-pct').innerText = cashPct + "%";
+
+            // Top Supplier
+            const supMap = {};
+            appData.forEach(d => { supMap[d.supplier] = (supMap[d.supplier] || 0) + d.bill; });
+            const sortedSups = Object.entries(supMap).sort((a,b) => b[1] - a[1]);
+            document.getElementById('an-top-sup').innerText = sortedSups.length > 0 ? sortedSups[0][0] : "-";
+
+            // 2. Prepare Chart Data (Last 7 Days)
+            const last7Days = [];
+            const dataTrend = [];
+            for (let i=6; i>=0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const iso = d.toISOString().split('T')[0];
+                last7Days.push(d.toLocaleDateString('en-IN', {weekday: 'short'}));
+                
+                const daySum = appData.filter(x => x.date === iso).reduce((a,b) => a + b.bill, 0);
+                dataTrend.push(daySum);
+            }
+
+            // 3. Render Trend Chart
+            const ctxTrend = document.getElementById('chartTrend').getContext('2d');
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Purchase (₹)',
+                        data: dataTrend,
+                        borderColor: '#007AFF',
+                        backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { borderDash: [2, 4] } }, x: { grid: { display: false } } }
+                }
+            });
+
+            // 4. Render Mode Chart
+            const totalUpi = appData.reduce((a, b) => a + b.upi, 0);
+            const totalNet = appData.reduce((a, b) => a + b.net, 0);
+            
+            const ctxMode = document.getElementById('chartMode').getContext('2d');
+            if (modeChartInstance) modeChartInstance.destroy();
+
+            modeChartInstance = new Chart(ctxMode, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cash', 'UPI', 'Net Banking', 'Pending'],
+                    datasets: [{
+                        data: [totalCash, totalUpi, totalNet, (totalSpend - (totalCash+totalUpi+totalNet))],
+                        backgroundColor: ['#34C759', '#007AFF', '#AF52DE', '#FF3B30'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
+                }
+            });
+        }
+
+        // ==========================================
+        // TAB: FORECAST LOGIC
+        // ==========================================
+        function renderForecast() {
+            // Simple moving average (Last 30 days)
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - 30);
+            const cutoffIso = cutoffDate.toISOString().split('T')[0];
+
+            const recentData = appData.filter(d => d.date >= cutoffIso);
+            const totalRecent = recentData.reduce((a,b) => a + b.bill, 0);
+            
+            // Avoid division by zero
+            const daysCount = 30; 
+            const dailyAvg = totalRecent / daysCount;
+
+            const nextWeek = dailyAvg * 7;
+            const nextMonth = dailyAvg * 30;
+
+            document.getElementById('fc-next-week').innerText = formatCurrency(nextWeek);
+            document.getElementById('fc-next-month').innerText = formatCurrency(nextMonth);
+
+            // Generate Insights
+            const list = document.getElementById('insights-list');
+            list.innerHTML = '';
+
+            const insights = [];
+            
+            // Insight 1: Spending Trend
+            const lastWeekData = appData.filter(d => {
+                const diff = (new Date() - new Date(d.date)) / (1000 * 60 * 60 * 24);
+                return diff <= 7;
+            });
+            const prevWeekData = appData.filter(d => {
+                const diff = (new Date() - new Date(d.date)) / (1000 * 60 * 60 * 24);
+                return diff > 7 && diff <= 14;
+            });
+
+            const sumLast = lastWeekData.reduce((a,b) => a+b.bill, 0);
+            const sumPrev = prevWeekData.reduce((a,b) => a+b.bill, 0);
+
+            if (sumPrev > 0) {
+                const change = ((sumLast - sumPrev) / sumPrev) * 100;
+                if (change > 10) insights.push(`Spending increased by <b class="text-red-500">${change.toFixed(1)}%</b> compared to last week.`);
+                else if (change < -10) insights.push(`Spending decreased by <b class="text-green-500">${Math.abs(change).toFixed(1)}%</b> compared to last week.`);
+                else insights.push(`Spending is stable compared to last week.`);
+            }
+
+            // Insight 2: High dependency
+            const supMap = {};
+            recentData.forEach(d => { supMap[d.supplier] = (supMap[d.supplier] || 0) + d.bill; });
+            const top = Object.entries(supMap).sort((a,b) => b[1] - a[1])[0];
+            if (top) {
+                const pct = ((top[1] / totalRecent) * 100).toFixed(0);
+                insights.push(`<b>${top[0]}</b> accounts for <b>${pct}%</b> of your recent purchases.`);
+            }
+
+            // Insight 3: Pending
+            const totalPending = appData.reduce((a, b) => a + (b.bill - (b.cash+b.upi+b.net)), 0);
+            if (totalPending > 10000) {
+                insights.push(`You have a high total outstanding balance of <b>${formatCurrency(totalPending)}</b>.`);
+            }
+
+            if(insights.length === 0) insights.push("Add more data to see smart insights.");
+
+            insights.forEach(txt => {
+                const li = document.createElement('li');
+                li.className = "flex gap-3 text-sm text-gray-700 items-start";
+                li.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-ios-blue mt-1.5 flex-shrink-0"></span><span>${txt}</span>`;
+                list.appendChild(li);
+            });
+        }
+
+        // Initialize
+        window.onload = function() {
+            initData();
+            renderTodayDashboard(); // Render initial stats
+        };
+
+    </script>
 </body>
 </html>
