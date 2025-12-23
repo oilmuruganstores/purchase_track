@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oil Murugan | Predictive Analytics</title>
+    <title>Oil Murugan | Predictive Analytics Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -16,9 +16,8 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .nav-item.active { background: #1E293B; color: #FFFFFF; }
         .time-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-        
-        /* Smooth transitions for input switching */
-        .input-transition { transition: all 0.2s ease-in-out; }
+        .trend-up { color: #ef4444; }
+        .trend-down { color: #22c55e; }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
@@ -33,7 +32,7 @@
         </div>
 
         <nav class="flex-1 px-4 space-y-1">
-            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item active w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
                 <i class="ph ph-squares-four text-xl"></i> Dashboard
             </button>
             <button onclick="prepareNewEntry(); switchTab('purchase')" id="btn-purchase" class="nav-item w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold transition-all text-slate-500 hover:bg-slate-50">
@@ -68,6 +67,10 @@
             </header>
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white">
+                    <p class="text-[10px] font-black opacity-70 uppercase tracking-widest mb-1">Today's Purchase</p>
+                    <h3 class="text-2xl font-black" id="dash-today">₹0</h3>
+                </div>
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Spent</p>
                     <h3 class="text-2xl font-black" id="dash-total">₹0</h3>
@@ -76,9 +79,9 @@
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Dues</p>
                     <h3 class="text-2xl font-black text-orange-600" id="dash-dues">₹0</h3>
                 </div>
-                <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white md:col-span-2">
-                    <p class="text-[10px] font-black opacity-80 uppercase tracking-widest mb-1">Forecasted Requirement (7 Days)</p>
-                    <h3 class="text-3xl font-black" id="dash-week-forecast">₹0</h3>
+                <div class="bg-slate-900 p-6 rounded-3xl shadow-xl text-white">
+                    <p class="text-[10px] font-black opacity-70 uppercase tracking-widest mb-1">Monthly Forecast</p>
+                    <h3 class="text-2xl font-black text-green-400" id="dash-forecast">₹0</h3>
                 </div>
             </div>
 
@@ -88,11 +91,11 @@
                     <div id="dash-top-suppliers" class="space-y-3"></div>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <h4 class="text-xs font-black uppercase text-slate-400 mb-4">System Alerts</h4>
-                    <div id="dash-upcoming" class="space-y-3 text-slate-500 text-sm font-medium">
-                        <div class="flex items-start gap-3 bg-blue-50 p-3 rounded-xl text-blue-800">
-                            <i class="ph ph-info mt-1"></i>
-                            <p>No immediate buying predicted. Add more data to improve forecast accuracy.</p>
+                    <h4 class="text-xs font-black uppercase text-slate-400 mb-4">Buying Frequency</h4>
+                    <div id="dash-freq-insights" class="space-y-3">
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-xs text-slate-500 font-bold mb-1">Average Interval</p>
+                            <h5 class="text-xl font-black" id="avg-freq-text">0 Days</h5>
                         </div>
                     </div>
                 </div>
@@ -104,10 +107,10 @@
             <div class="flex justify-between items-center mb-8">
                 <div>
                     <h2 class="text-3xl font-extrabold" id="form-title">Record Inventory</h2>
-                    <p class="text-slate-500 text-sm font-medium" id="form-subtitle">Log your latest stock purchase.</p>
+                    <p class="text-slate-500 text-sm font-medium">Log your latest stock purchase.</p>
                 </div>
-                <button onclick="prepareNewEntry()" id="cancel-edit" class="hidden flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-red-100 hover:bg-red-100">
-                    <i class="ph ph-x-circle"></i> Cancel Edit
+                <button onclick="prepareNewEntry()" id="cancel-edit" class="hidden flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-red-100">
+                    <i class="ph ph-x-circle"></i> Cancel
                 </button>
             </div>
             
@@ -115,51 +118,42 @@
                 <input type="hidden" id="p-id">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- SUPPLIER SELECTION LOGIC -->
                     <div class="space-y-2 group">
                         <div class="flex justify-between items-center px-1">
                             <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Supplier Name</label>
-                            <button type="button" id="toggle-supplier-btn" onclick="setSupplierMode(true)" class="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 transition-colors">
-                                <i class="ph ph-plus-circle align-middle mr-1"></i> New Supplier
+                            <button type="button" id="toggle-supplier-btn" onclick="setSupplierMode(true)" class="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800">
+                                <i class="ph ph-plus-circle align-middle mr-1"></i> New
                             </button>
                         </div>
-                        
-                        <!-- Existing Dropdown -->
                         <div id="supplier-select-wrapper">
-                            <select id="p-supplier-select" class="w-full px-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none font-bold transition-all appearance-none cursor-pointer">
+                            <select id="p-supplier-select" class="w-full px-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none font-bold appearance-none cursor-pointer">
                                 <option value="">Select Existing...</option>
                             </select>
                         </div>
-
-                        <!-- New Text Input -->
-                        <div id="supplier-input-wrapper" class="hidden">
-                            <div class="relative">
-                                <input type="text" id="p-supplier-input" class="w-full px-5 py-4 bg-blue-50 rounded-2xl border-2 border-blue-200 focus:border-blue-500 focus:bg-white outline-none font-bold transition-all" placeholder="Enter new vendor name...">
-                                <button type="button" onclick="setSupplierMode(false)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                    <i class="ph ph-arrow-u-up-left font-bold"></i>
-                                </button>
-                            </div>
+                        <div id="supplier-input-wrapper" class="hidden relative">
+                            <input type="text" id="p-supplier-input" class="w-full px-5 py-4 bg-blue-50 rounded-2xl border-2 border-blue-200 outline-none font-bold" placeholder="Vendor name...">
+                            <button type="button" onclick="setSupplierMode(false)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="ph ph-arrow-u-up-left"></i></button>
                         </div>
                     </div>
 
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">Category</label>
-                        <select id="p-category" class="w-full px-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none font-bold transition-all cursor-pointer">
+                        <select id="p-category" class="w-full px-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none font-bold">
                             <option>Oil & Ghee</option><option>Grains & Rice</option><option>Pulses & Dals</option>
-                            <option>Sugar & Spices</option><option>FMCG</option>
+                            <option>Sugar & Spices</option><option>FMCG</option><option>Others</option>
                         </select>
                     </div>
 
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">Bill Date</label>
-                        <input type="date" id="p-date" class="w-full px-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none font-bold transition-all" required>
+                        <input type="date" id="p-date" class="w-full px-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none font-bold" required>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">Total Bill Amount</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">Total Bill</label>
                         <div class="relative">
                             <span class="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
-                            <input type="number" id="p-total" class="w-full pl-10 pr-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none font-black text-blue-600 text-xl transition-all" placeholder="0.00" step="0.01" required>
+                            <input type="number" id="p-total" class="w-full pl-10 pr-5 py-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none font-black text-blue-600 text-xl" placeholder="0.00" step="0.01" required>
                         </div>
                     </div>
                 </div>
@@ -177,8 +171,8 @@
                     </div>
                 </div>
                 
-                <button type="submit" id="submit-btn" class="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
-                    <i class="ph ph-shield-check text-2xl"></i> <span id="btn-text">Save Transaction</span>
+                <button type="submit" class="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl transition-all flex items-center justify-center gap-3">
+                    <i class="ph ph-shield-check text-2xl"></i> Save Transaction
                 </button>
             </form>
         </div>
@@ -188,7 +182,7 @@
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-extrabold tracking-tight">Smart Intelligence</h2>
-                    <p class="text-slate-500 font-medium">Predictive buying models based on historical patterns.</p>
+                    <p class="text-slate-500 font-medium">Market trends and predictive supply forecasting.</p>
                 </div>
                 <div class="flex items-center gap-2 bg-white p-1 rounded-2xl border border-slate-200">
                     <button onclick="changeTimeframe('day')" id="tf-day" class="time-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Day</button>
@@ -197,40 +191,68 @@
                 </div>
             </header>
 
+            <!-- Insight Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Required: Next 24h</p>
-                        <h5 class="text-4xl font-black text-slate-900" id="predict-day">₹0</h5>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Requirement Forecast</p>
+                    <h5 class="text-4xl font-black text-slate-900" id="predict-value">₹0</h5>
+                    <div class="flex items-center gap-1 mt-2">
+                        <span id="predict-trend" class="text-xs font-black">--</span>
+                        <span class="text-xs text-slate-400 font-medium" id="predict-label">vs Prev Period</span>
                     </div>
                 </div>
-                <div class="bg-blue-600 p-8 rounded-[2rem] shadow-xl text-white flex flex-col justify-between">
-                    <div>
-                        <p class="text-[10px] font-black opacity-70 uppercase mb-2">Required: Next 7 Days</p>
-                        <h5 class="text-4xl font-black" id="predict-week">₹0</h5>
-                    </div>
+                <div class="bg-blue-600 p-8 rounded-[2rem] shadow-xl text-white">
+                    <p class="text-[10px] font-black opacity-70 uppercase mb-2">Purchase Velocity</p>
+                    <h5 class="text-4xl font-black" id="avg-ticket">₹0</h5>
+                    <p class="text-xs opacity-70 mt-2">Current spending speed</p>
                 </div>
-                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Required: Next 30 Days</p>
-                        <h5 class="text-4xl font-black text-slate-900" id="predict-month">₹0</h5>
-                    </div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Supply Consistency</p>
+                    <h5 class="text-4xl font-black text-slate-900" id="consistency-score">0%</h5>
+                    <p class="text-xs text-slate-400 mt-2">Vendor reliability index</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-center mb-6">
-                        <h4 class="font-black text-xl">Spend Trends</h4>
-                        <select id="supplier-chart-filter" onchange="renderAnalytics()" class="bg-slate-50 text-[10px] font-black uppercase p-2 rounded-lg outline-none cursor-pointer">
-                            <option value="all">All Suppliers</option>
+            <!-- Full Width Forecast Chart -->
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <h4 class="font-black text-xl">Spending & Forecast Projection</h4>
+                        <p class="text-xs text-slate-400 font-medium">Visualizing actual spend vs algorithmic prediction</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-blue-600"></div>
+                            <span class="text-[10px] font-black uppercase text-slate-400">Actual</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full border-2 border-dashed border-slate-300"></div>
+                            <span class="text-[10px] font-black uppercase text-slate-400">Forecast</span>
+                        </div>
+                        <select id="supplier-chart-filter" onchange="renderAnalytics()" class="bg-slate-50 text-[10px] font-black uppercase px-4 py-2 rounded-xl outline-none cursor-pointer border border-slate-100">
+                            <option value="all">Global View</option>
                         </select>
                     </div>
-                    <div class="h-[300px]"><canvas id="mainChart"></canvas></div>
                 </div>
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <h4 class="font-black text-xl mb-6">Supplier Split</h4>
-                    <div class="h-[300px]"><canvas id="supplierChart"></canvas></div>
+                <div class="h-[400px] w-full">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Secondary Distribution -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <h4 class="font-black text-xl mb-6">Budget Allocation</h4>
+                    <div class="h-[300px]"><canvas id="catChart"></canvas></div>
+                </div>
+                <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white">
+                    <h4 class="font-black text-xl mb-6">Smart Recommendations</h4>
+                    <div id="ai-recs" class="space-y-4">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p class="text-xs font-bold text-blue-400 uppercase mb-1">Inventory Alert</p>
+                            <p class="text-sm opacity-80">Collecting data to generate stock-out predictions...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -240,45 +262,54 @@
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-extrabold">Data Management</h2>
-                    <p class="text-slate-500">Historical logs and backup tools.</p>
+                    <p class="text-slate-500">Search, filter, export or import your records.</p>
                 </div>
-                <button onclick="exportToCSV()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-100">
-                    <i class="ph ph-file-csv text-xl"></i> Export CSV
-                </button>
+                <div class="flex gap-2">
+                    <label class="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all cursor-pointer">
+                        <i class="ph ph-upload-simple text-xl"></i> Import CSV
+                        <input type="file" id="import-file" class="hidden" accept=".csv" onchange="handleImport(event)">
+                    </label>
+                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-100">
+                        <i class="ph ph-file-csv text-xl"></i> Export CSV
+                    </button>
+                </div>
             </header>
 
             <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input type="date" id="filter-start" onchange="renderHistory()" class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold text-sm" placeholder="Start Date">
-                    <input type="date" id="filter-end" onchange="renderHistory()" class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold text-sm" placeholder="End Date">
+                    <input type="date" id="filter-start" onchange="renderHistory()" class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold text-sm">
+                    <input type="date" id="filter-end" onchange="renderHistory()" class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold text-sm">
                     <input type="text" id="filter-supplier" oninput="renderHistory()" placeholder="Search supplier..." class="w-full px-4 py-3 bg-slate-50 rounded-xl outline-none font-bold text-sm">
                 </div>
             </div>
 
             <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Supplier</th>
-                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Bill</th>
-                            <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table" class="divide-y divide-slate-100"></tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                                <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Supplier</th>
+                                <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Bill</th>
+                                <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Paid</th>
+                                <th class="p-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // --- Core Application State ---
+        // --- State Management ---
         let purchases = JSON.parse(localStorage.getItem('oms_v4_data') || '[]');
-        let currentTimeframe = 'month';
+        let currentTF = 'month'; // 'day', 'week', 'month'
         let charts = {};
         let isNewSupplierMode = false;
 
-        // --- UI Utilities ---
+        // --- Core Utilities ---
         function showToast(msg, icon = 'ph-check-circle') {
             const toast = document.createElement('div');
             toast.className = 'fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-bounce';
@@ -292,46 +323,25 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('btn-' + id).classList.add('active');
-            if (id === 'analytics') setTimeout(renderAnalytics, 100);
+            if (id === 'analytics' || id === 'dashboard') refreshAllUI();
         }
 
-        // --- Supplier Selection Logic ---
         function setSupplierMode(isNew) {
             isNewSupplierMode = isNew;
-            const selectWrap = document.getElementById('supplier-select-wrapper');
-            const inputWrap = document.getElementById('supplier-input-wrapper');
-            const toggleBtn = document.getElementById('toggle-supplier-btn');
-
-            if (isNew) {
-                selectWrap.classList.add('hidden');
-                inputWrap.classList.remove('hidden');
-                toggleBtn.classList.add('hidden');
-                document.getElementById('p-supplier-input').focus();
-            } else {
-                selectWrap.classList.remove('hidden');
-                inputWrap.classList.add('hidden');
-                toggleBtn.classList.remove('hidden');
-                document.getElementById('p-supplier-input').value = '';
-            }
+            document.getElementById('supplier-select-wrapper').classList.toggle('hidden', isNew);
+            document.getElementById('supplier-input-wrapper').classList.toggle('hidden', !isNew);
+            document.getElementById('toggle-supplier-btn').classList.toggle('hidden', isNew);
+            if (isNew) document.getElementById('p-supplier-input').focus();
         }
 
-        function updateSupplierDropdowns() {
-            const uniqueSuppliers = [...new Set(purchases.map(p => p.supplier))].sort();
-            
-            // For Form Select
-            const select = document.getElementById('p-supplier-select');
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">Select Existing...</option>' + 
-                uniqueSuppliers.map(s => `<option value="${s}" ${s === currentVal ? 'selected' : ''}>${s}</option>`).join('');
-
-            // For Analytics Filter
-            const filter = document.getElementById('supplier-chart-filter');
-            const filterVal = filter.value;
-            filter.innerHTML = '<option value="all">All Suppliers</option>' + 
-                uniqueSuppliers.map(s => `<option value="${s}" ${s === filterVal ? 'selected' : ''}>${s}</option>`).join('');
+        function changeTimeframe(tf) {
+            currentTF = tf;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tf-' + tf).classList.add('active');
+            renderAnalytics();
         }
 
-        // --- Data Handling ---
+        // --- Data Persistence ---
         function saveData() {
             localStorage.setItem('oms_v4_data', JSON.stringify(purchases));
             refreshAllUI();
@@ -344,27 +354,33 @@
             if (document.getElementById('analytics').classList.contains('active')) renderAnalytics();
         }
 
+        function updateSupplierDropdowns() {
+            const unique = [...new Set(purchases.map(p => p.supplier))].sort();
+            const select = document.getElementById('p-supplier-select');
+            const filter = document.getElementById('supplier-chart-filter');
+            
+            const currentSel = select.value;
+            select.innerHTML = '<option value="">Select Existing...</option>' + 
+                unique.map(s => `<option value="${s}" ${s === currentSel ? 'selected' : ''}>${s}</option>`).join('');
+
+            const currentFilt = filter.value;
+            filter.innerHTML = '<option value="all">Global View</option>' + 
+                unique.map(s => `<option value="${s}" ${s === currentFilt ? 'selected' : ''}>${s}</option>`).join('');
+        }
+
+        // --- Business Logic ---
         function handlePurchaseSubmit() {
             const id = document.getElementById('p-id').value;
-            let supplier;
-
-            if (isNewSupplierMode) {
-                supplier = document.getElementById('p-supplier-input').value.trim();
-            } else {
-                supplier = document.getElementById('p-supplier-select').value;
-            }
-
-            if (!supplier) {
-                showToast("Please provide a supplier name", "ph-warning");
-                return;
-            }
+            const supplier = isNewSupplierMode ? document.getElementById('p-supplier-input').value.trim() : document.getElementById('p-supplier-select').value;
+            
+            if (!supplier) return showToast("Supplier name required", "ph-warning");
 
             const entry = {
                 id: id || crypto.randomUUID(),
                 supplier: supplier,
                 category: document.getElementById('p-category').value,
                 date: document.getElementById('p-date').value,
-                total: parseFloat(document.getElementById('p-total').value),
+                total: parseFloat(document.getElementById('p-total').value) || 0,
                 paid: parseFloat(document.getElementById('p-paid').value) || 0,
                 mode: document.getElementById('p-mode').value,
                 ts: new Date(document.getElementById('p-date').value).getTime()
@@ -383,46 +399,52 @@
             prepareNewEntry();
         }
 
-        function prepareNewEntry() {
-            document.getElementById('purchase-form').reset();
-            document.getElementById('p-id').value = '';
-            document.getElementById('form-title').innerText = "Record Inventory";
-            document.getElementById('cancel-edit').classList.add('hidden');
-            document.getElementById('p-date').valueAsDate = new Date();
-            setSupplierMode(false);
+        function handleImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const text = event.target.result;
+                    const lines = text.split('\n').filter(l => l.trim().length > 0);
+                    const newEntries = [];
+                    const startIdx = lines[0].toLowerCase().includes('date') ? 1 : 0;
+                    
+                    for (let i = startIdx; i < lines.length; i++) {
+                        const parts = lines[i].split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+                        if (parts.length >= 4) {
+                            newEntries.push({
+                                id: crypto.randomUUID(),
+                                date: parts[0],
+                                supplier: parts[1],
+                                category: parts[2] || 'Others',
+                                total: parseFloat(parts[3]) || 0,
+                                paid: parseFloat(parts[4]) || 0,
+                                mode: parts[5] || 'Cash',
+                                ts: new Date(parts[0]).getTime()
+                            });
+                        }
+                    }
+                    if (newEntries.length > 0) {
+                        purchases = [...newEntries, ...purchases];
+                        saveData();
+                        showToast(`Imported ${newEntries.length} records`);
+                    }
+                } catch (err) {
+                    showToast("Error parsing file", "ph-warning");
+                }
+            };
+            reader.readAsText(file);
         }
 
-        function editRecord(id) {
-            const rec = purchases.find(p => p.id === id);
-            if (!rec) return;
-
-            switchTab('purchase');
-            document.getElementById('p-id').value = rec.id;
-            document.getElementById('p-category').value = rec.category;
-            document.getElementById('p-date').value = rec.date;
-            document.getElementById('p-total').value = rec.total;
-            document.getElementById('p-paid').value = rec.paid;
-            document.getElementById('p-mode').value = rec.mode;
-            
-            setSupplierMode(false);
-            document.getElementById('p-supplier-select').value = rec.supplier;
-
-            document.getElementById('form-title').innerText = "Edit Purchase";
-            document.getElementById('cancel-edit').classList.remove('hidden');
-        }
-
-        function deleteRecord(id) {
-            if (!confirm("Permanently delete this entry?")) return;
-            purchases = purchases.filter(p => p.id !== id);
-            saveData();
-            showToast("Record deleted", "ph-trash");
-        }
-
-        // --- Visualizations & Logic ---
         function renderDashboard() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayTotal = purchases.filter(p => p.date === todayStr).reduce((a, b) => a + b.total, 0);
             const total = purchases.reduce((a, b) => a + b.total, 0);
             const dues = purchases.reduce((a, b) => a + (b.total - b.paid), 0);
-            
+
+            document.getElementById('dash-today').innerText = `₹${todayTotal.toLocaleString('en-IN')}`;
             document.getElementById('dash-total').innerText = `₹${total.toLocaleString('en-IN')}`;
             document.getElementById('dash-dues').innerText = `₹${dues.toLocaleString('en-IN')}`;
 
@@ -434,6 +456,158 @@
                     <span class="font-black text-blue-600">₹${s[1].toLocaleString('en-IN')}</span>
                 </div>
             `).join('') || '<p class="text-center py-4 text-slate-400 italic">No data yet</p>';
+
+            if (purchases.length > 1) {
+                const dates = purchases.map(p => p.ts).sort((a,b) => a-b);
+                const diffs = [];
+                for(let i=1; i<dates.length; i++) diffs.push((dates[i] - dates[i-1]) / 86400000);
+                const avgDiff = diffs.reduce((a,b) => a+b, 0) / diffs.length;
+                document.getElementById('avg-freq-text').innerText = `${Math.round(avgDiff)} Days`;
+            }
+
+            const earliest = Math.min(...purchases.map(p => p.ts || Date.now()));
+            const daysDiff = Math.max(1, (Date.now() - earliest) / 86400000);
+            const dailyAvg = total / daysDiff;
+            document.getElementById('dash-forecast').innerText = `₹${Math.round(dailyAvg * 30).toLocaleString('en-IN')}`;
+        }
+
+        function renderAnalytics() {
+            if (!purchases.length) return;
+            const vendor = document.getElementById('supplier-chart-filter').value;
+            const filtered = vendor === 'all' ? purchases : purchases.filter(p => p.supplier === vendor);
+            
+            const totalVal = filtered.reduce((a, b) => a + b.total, 0);
+            const earliest = Math.min(...filtered.map(p => p.ts));
+            const daysActive = Math.max(1, (Date.now() - earliest) / 86400000);
+            const dailyVel = totalVal / daysActive;
+            
+            let forecast = 0;
+            let periodDays = 30;
+            if (currentTF === 'day') periodDays = 1;
+            else if (currentTF === 'week') periodDays = 7;
+            forecast = dailyVel * periodDays;
+            
+            // Forecast UI
+            document.getElementById('predict-value').innerText = `₹${Math.round(forecast).toLocaleString('en-IN')}`;
+            document.getElementById('avg-ticket').innerText = `₹${Math.round(dailyVel).toLocaleString('en-IN')}/day`;
+            
+            // Consistency / Reliability Score
+            const uniqueVendors = [...new Set(filtered.map(p => p.supplier))].length;
+            const reliability = Math.min(100, (filtered.length / daysActive) * 100);
+            document.getElementById('consistency-score').innerText = `${Math.round(reliability)}%`;
+
+            // Charts
+            renderForecastChart(filtered);
+            const catMap = {}; filtered.forEach(p => catMap[p.category] = (catMap[p.category] || 0) + p.total);
+            renderCatChart(catMap);
+            generateRecommendations(filtered, dailyVel);
+        }
+
+        function renderForecastChart(data) {
+            // Group by Month
+            const groups = {};
+            data.forEach(p => {
+                const key = p.date.substring(0, 7);
+                groups[key] = (groups[key] || 0) + p.total;
+            });
+
+            const labels = Object.keys(groups).sort();
+            const actualValues = labels.map(l => groups[l]);
+            
+            // Prediction Logic (Simple Linear Moving Average)
+            const avg = actualValues.reduce((a,b) => a+b, 0) / actualValues.length;
+            const nextMonth = new Date(labels[labels.length-1]);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const nextLabel = nextMonth.toISOString().substring(0, 7);
+            
+            const extendedLabels = [...labels, nextLabel];
+            const forecastValues = [...new Array(labels.length).fill(null), avg];
+
+            if (charts.main) charts.main.destroy();
+            charts.main = new Chart(document.getElementById('mainChart'), {
+                type: 'line',
+                data: {
+                    labels: extendedLabels,
+                    datasets: [
+                        {
+                            label: 'Actual Spend',
+                            data: actualValues,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 4,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#2563eb'
+                        },
+                        {
+                            label: 'Forecast',
+                            data: forecastValues,
+                            borderColor: '#cbd5e1',
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0,
+                            pointRadius: 8,
+                            pointStyle: 'rectRot',
+                            pointBackgroundColor: '#fff'
+                        }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderCatChart(catMap) {
+            if (charts.cat) charts.cat.destroy();
+            charts.cat = new Chart(document.getElementById('catChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(catMap),
+                    datasets: [{
+                        data: Object.values(catMap),
+                        backgroundColor: ['#2563eb', '#1e293b', '#64748b', '#94a3b8', '#3b82f6', '#0ea5e9']
+                    }]
+                },
+                options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right' } } }
+            });
+        }
+
+        function generateRecommendations(data, dailyAvg) {
+            const container = document.getElementById('ai-recs');
+            const recs = [];
+            
+            // 1. High Velocity Alert
+            if (data.length > 5) {
+                const recent = data.slice(0, 3).reduce((a,b) => a + b.total, 0) / 3;
+                if (recent > dailyAvg * 1.5) {
+                    recs.push({ title: "Spending Surge", msg: "Recent purchases are 50% higher than your normal average. Check inventory levels.", color: "text-orange-400" });
+                }
+            }
+            
+            // 2. Supplier concentration
+            const sMap = {}; data.forEach(p => sMap[p.supplier] = (sMap[p.supplier] || 0) + 1);
+            const top = Object.entries(sMap).sort((a,b) => b[1]-a[1])[0];
+            if (top && top[1] > data.length * 0.7) {
+                recs.push({ title: "Vendor Risk", msg: `${top[0]} handles over 70% of your orders. Consider diversifying to avoid supply shocks.`, color: "text-blue-400" });
+            }
+
+            if (recs.length === 0) {
+                container.innerHTML = `<div class="p-4 bg-white/5 rounded-2xl border border-white/10 opacity-50"><p class="text-sm">More data needed for personalized AI tips...</p></div>`;
+            } else {
+                container.innerHTML = recs.map(r => `
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <p class="text-xs font-bold ${r.color} uppercase mb-1">${r.title}</p>
+                        <p class="text-sm opacity-80">${r.msg}</p>
+                    </div>
+                `).join('');
+            }
         }
 
         function renderHistory() {
@@ -452,6 +626,7 @@
                     <td class="p-5 font-mono text-xs text-slate-400">${p.date}</td>
                     <td class="p-5 font-bold text-slate-800">${p.supplier}</td>
                     <td class="p-5 font-black text-blue-600">₹${p.total.toLocaleString('en-IN')}</td>
+                    <td class="p-5 font-bold text-green-600">₹${p.paid.toLocaleString('en-IN')}</td>
                     <td class="p-5 text-center">
                         <div class="flex justify-center gap-3">
                             <button onclick="editRecord('${p.id}')" class="text-slate-400 hover:text-blue-600"><i class="ph ph-pencil text-lg"></i></button>
@@ -462,62 +637,50 @@
             `).join('');
         }
 
-        function renderAnalytics() {
-            if (!purchases.length) return;
-            const vendor = document.getElementById('supplier-chart-filter').value;
-            const filtered = vendor === 'all' ? purchases : purchases.filter(p => p.supplier === vendor);
+        function editRecord(id) {
+            const rec = purchases.find(p => p.id === id);
+            if (!rec) return;
+            switchTab('purchase');
+            document.getElementById('p-id').value = rec.id;
+            document.getElementById('p-date').value = rec.date;
+            document.getElementById('p-total').value = rec.total;
+            document.getElementById('p-paid').value = rec.paid;
+            document.getElementById('p-mode').value = rec.mode;
+            document.getElementById('p-category').value = rec.category;
+            setSupplierMode(false);
+            document.getElementById('p-supplier-select').value = rec.supplier;
+            document.getElementById('form-title').innerText = "Edit Purchase";
+            document.getElementById('cancel-edit').classList.remove('hidden');
+        }
 
-            const groups = {};
-            filtered.forEach(p => {
-                const key = p.date.substring(0, 7); // Monthly groups
-                groups[key] = (groups[key] || 0) + p.total;
-            });
+        function deleteRecord(id) {
+            if (!confirm("Delete this entry?")) return;
+            purchases = purchases.filter(p => p.id !== id);
+            saveData();
+        }
 
-            const keys = Object.keys(groups).sort();
-            const vals = keys.map(k => groups[k]);
-
-            if (charts.main) charts.main.destroy();
-            charts.main = new Chart(document.getElementById('mainChart'), {
-                type: 'line',
-                data: {
-                    labels: keys,
-                    datasets: [{
-                        label: 'Spend',
-                        data: vals,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3
-                    }]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            // Prediction logic based on velocity
-            const earliest = Math.min(...purchases.map(p => p.ts));
-            const totalSpend = purchases.reduce((a,b) => a+b.total, 0);
-            const daysActive = Math.max(1, (Date.now() - earliest) / 86400000);
-            const dailyVel = totalSpend / daysActive;
-
-            document.getElementById('predict-day').innerText = `₹${Math.round(dailyVel).toLocaleString('en-IN')}`;
-            document.getElementById('predict-week').innerText = `₹${Math.round(dailyVel * 7).toLocaleString('en-IN')}`;
-            document.getElementById('predict-month').innerText = `₹${Math.round(dailyVel * 30).toLocaleString('en-IN')}`;
+        function prepareNewEntry() {
+            document.getElementById('purchase-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('form-title').innerText = "Record Inventory";
+            document.getElementById('cancel-edit').classList.add('hidden');
+            document.getElementById('p-date').valueAsDate = new Date();
+            setSupplierMode(false);
         }
 
         function exportToCSV() {
             if (!purchases.length) return;
-            const csv = "Date,Supplier,Category,Total,Paid\n" + 
-                purchases.map(p => `${p.date},"${p.supplier}",${p.category},${p.total},${p.paid}`).join("\n");
+            const csv = "Date,Supplier,Category,Total,Paid,Mode\n" + 
+                purchases.map(p => `${p.date},"${p.supplier}",${p.category},${p.total},${p.paid},${p.mode}`).join("\n");
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Oil_Murugan_Backup_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `OilMurugan_Data_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
         }
 
-        // --- Initialization ---
+        // --- Init ---
         document.getElementById('p-date').valueAsDate = new Date();
         refreshAllUI();
     </script>
